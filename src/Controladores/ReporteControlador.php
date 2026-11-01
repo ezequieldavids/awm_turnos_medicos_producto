@@ -12,7 +12,7 @@ use Turnos\Http\HttpException;
 use Turnos\Reportes\ReporteRepositorio;
 use Turnos\Reservas\Franjas;
 
-// Reportes de gestión (TUR-006, RF-12 y CU-06): sólo el administrador.
+// Reportes de gestión: sólo el administrador.
 final class ReporteControlador
 {
     private const DIAS_MAXIMOS = 366;

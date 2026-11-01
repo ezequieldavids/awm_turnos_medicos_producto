@@ -15,7 +15,7 @@ final class Autenticacion
     }
 
     // Devuelve la cuenta autenticada o null. No distingue entre DNI inexistente, contraseña
-    // incorrecta y cuenta inactiva (AC-002).
+    // incorrecta y cuenta inactiva.
     public function verificar(string $dni, string $password): ?array
     {
         $cuenta = $this->usuarios->buscarPorDni($dni);

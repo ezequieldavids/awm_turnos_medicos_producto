@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Auxiliar de test_agendas.py (TUR-004, AC-005): mantiene abierta un alta con el bloqueo del profesional
+// Auxiliar de test_agendas.py: mantiene abierta un alta con el bloqueo del profesional
 // y, tras esperar, confirma una agenda que se superpone con la que la prueba enviará por la API.
 // Uso: php tests/api/bloqueo_agendas.php <profesional> <consultorio> <especialidad> <año> <segundos>
 // Imprime «bloqueado» cuando retiene la fila y «confirmado» al cerrar la transacción.

@@ -1,6 +1,6 @@
-"""Pruebas funcionales de TUR-006: reporte de turnos e indicadores y su exportación CSV (AC-002 a AC-004 y AC-006).
+"""Pruebas funcionales de reporte de turnos e indicadores y su exportación CSV.
 
-Requiere el entorno levantado con el esquema de db/schema.sql (secciones TUR-004, TUR-007 y TUR-006). Mismas variables que
+Requiere el entorno levantado con el esquema de db/schema.sql. Mismas variables que
 test_turnos.py. Cada prueba crea sus propios profesionales y agendas en un año lejano y aleatorio, y los turnos con estados
 conocidos se insertan en la base (la API no reserva en el pasado ni registra asistencia en el futuro), de modo que los
 conteos esperados se calculan a mano y se contrastan con una consulta SQL independiente.
@@ -95,7 +95,7 @@ class ReporteBase(TurnosBase):
 
 class ConsultaTest(ReporteBase):
 
-    # AC-002: totales, tasas y desglose con conteos conocidos en dos especialidades y dos profesionales.
+    # Totales, tasas y desglose con conteos conocidos en dos especialidades y dos profesionales.
     def test_ac002_totales_tasas_y_desglose(self):
         e = self.escenario()
         cuerpo = self.ok(fecha_desde=e['desde'], fecha_hasta=e['hasta'])
@@ -180,7 +180,7 @@ class ConsultaTest(ReporteBase):
 
 class TasasTest(ReporteBase):
 
-    # AC-003: tasas sin denominador, y períodos con un solo tipo de turno.
+    # Tasas sin denominador, y períodos con un solo tipo de turno.
     def test_ac003_periodo_sin_turnos(self):
         agenda = self.agenda()
         cuerpo = self.ok(fecha_desde='2021-01-01', fecha_hasta='2021-01-31', profesional=agenda['profesional'])
@@ -217,7 +217,7 @@ class TasasTest(ReporteBase):
 
 class AccesoTest(ReporteBase):
 
-    # AC-004: sólo el administrador consulta y exporta.
+    # Sólo el administrador consulta y exporta.
     def test_ac004_matriz_de_roles_en_consulta_y_csv(self):
         filtros = consulta(fecha_desde='2026-10-01', fecha_hasta='2026-10-28')
         for ruta in (f'/api/reportes/turnos?{filtros}', f'/api/reportes/turnos.csv?{filtros}'):
@@ -245,7 +245,7 @@ class CsvTest(ReporteBase):
         self.assertEqual(b'\xef\xbb\xbf', texto[:3])  # BOM de UTF-8
         return list(csv.reader(io.StringIO(texto[3:].decode('utf-8')), delimiter=';'))
 
-    # AC-006: el CSV coincide con el JSON y neutraliza fórmulas.
+    # El CSV coincide con el JSON y neutraliza fórmulas.
     def test_ac006_resumen_y_detalle_coinciden_con_el_json(self):
         e = self.escenario()
         filtros = {'fecha_desde': e['desde'], 'fecha_hasta': e['hasta']}

@@ -13,7 +13,7 @@ use Turnos\Http\HttpException;
 use Turnos\Reservas\Franjas;
 use Turnos\Reservas\TurnoRepositorio;
 
-// Franjas libres para reservar (TUR-007, RF-07) y opciones de búsqueda. Todos los roles autenticados pueden consultarlas.
+// Franjas libres para reservar y opciones de búsqueda. Todos los roles autenticados pueden consultarlas.
 final class DisponibilidadControlador
 {
     private const MAXIMO_DIAS = 31;

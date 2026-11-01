@@ -1,10 +1,10 @@
-// Recorrido de TUR-010 en un navegador real (T-005): autoconsulta de datos personales del paciente.
-// Cubre AC-001 (panel), AC-003 (campos sin cargar), AC-004 (sin sesión), AC-007 (solo lectura y texto escapado)
-// y AC-008 (viewports 390×844 y 1280×800).
+// Recorrido en un navegador real: autoconsulta de datos personales del paciente.
+// Cubre: panel, campos sin cargar, sin sesión, solo lectura y texto escapado
+// y viewports 390×844 y 1280×800.
 //
 // Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR (specs/TUR-010/artifacts).
+// ARTEFACTOS_DIR.
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:datos-personales
 // Cada ejecución crea un paciente nuevo con DNI único y cuenta propia; no modifica al paciente semilla.
@@ -73,7 +73,7 @@ async function main() {
   const navegador = await chromium.launch({ executablePath: CHROME, headless: true });
   const dni = dniUnico();
   const apellido = `Datos${sufijo}`;
-  // Texto con etiquetas: debe verse tal cual, sin interpretarse como HTML (AC-007).
+  // Texto con etiquetas: debe verse tal cual, sin interpretarse como HTML.
   const obraSocial = `<b>Cobertura ${sufijo}</b>`;
 
   try {

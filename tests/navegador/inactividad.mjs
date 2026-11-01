@@ -1,9 +1,9 @@
-// Recorridos de TUR-008 en un navegador real (T-005): cierre de sesión por inactividad.
-// Cubre AC-003 (cierre y aviso), AC-004 (la actividad mantiene la sesión), AC-005 (atrás tras vencer) y AC-009 (aviso en 390×844 y 1280×800).
+// Recorridos en un navegador real: cierre de sesión por inactividad.
+// Cubre: cierre y aviso, la actividad mantiene la sesión, atrás tras vencer y aviso en 390×844 y 1280×800.
 //
 // Requiere la aplicación levantada con la base de db/schema.sql, con SESION_INACTIVIDAD_SEGUNDOS=20, y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR (specs/TUR-008/artifacts).
+// ARTEFACTOS_DIR.
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:inactividad
 // Tarda unos 2 minutos: las esperas son el límite de inactividad.
@@ -85,7 +85,7 @@ async function main() {
   const navegador = await chromium.launch({ executablePath: CHROME, headless: true });
 
   try {
-    // AC-003 y AC-009: sin interacción, la sesión se cierra sola; el aviso se ve en ambos viewports.
+    // Sin interacción, la sesión se cierra sola; el aviso se ve en ambos viewports.
     const aviso = await navegador.newContext({ viewport: ESCRITORIO });
     const pAviso = await aviso.newPage();
     await ingresar(pAviso, PACIENTE);
@@ -103,7 +103,7 @@ async function main() {
       return captura(pAviso, 'AC-003-aviso-inactividad-desktop.png');
     });
     await comprobar('AC-009', 'el aviso se lee sin desborde horizontal en 390×844 y 1280×800', async () => {
-      // Sin esta comprobación, la medición de desborde daría OK sobre cualquier página (REV-TUR-008-001).
+      // Sin esta comprobación, la medición de desborde daría OK sobre cualquier página.
       afirmar(pAviso.url().includes('sesion=inactividad'), `la página no es la pantalla de inicio con aviso: ${pAviso.url()}`);
       afirmar((await pAviso.textContent('#alerta')).trim() === MENSAJE_INACTIVIDAD, 'falta el aviso de inactividad');
       await pAviso.setViewportSize(MOVIL);
@@ -117,7 +117,7 @@ async function main() {
     });
     await aviso.close();
 
-    // AC-004: la actividad del usuario mantiene la sesión (una pulsación cada 10 s, durante 30 s, con límite de 20 s).
+    // La actividad del usuario mantiene la sesión (una pulsación cada 10 s, durante 30 s, con límite de 20 s).
     const activo = await navegador.newContext({ viewport: ESCRITORIO });
     const pActivo = await activo.newPage();
     await ingresar(pActivo, PACIENTE);
@@ -135,7 +135,7 @@ async function main() {
     });
     await activo.close();
 
-    // AC-005: tras vencer, «atrás» vuelve a la pantalla de inicio y la API responde 401 antes de mostrar datos.
+    // Tras vencer, «atrás» vuelve a la pantalla de inicio y la API responde 401 antes de mostrar datos.
     const atras = await navegador.newContext({ viewport: ESCRITORIO });
     const pAtras = await atras.newPage();
     await ingresar(pAtras, PACIENTE);
@@ -152,7 +152,7 @@ async function main() {
         }
       });
       await pAtras.goBack();
-      // Q-4: tras atrás la pantalla de inicio muestra el aviso (REV-TUR-008-002).
+      // Tras atrás la pantalla de inicio muestra el aviso.
       await pAtras.waitForURL((url) => url.pathname === '/' && url.searchParams.get('sesion') === 'inactividad', { timeout: 10000 });
       await pAtras.waitForSelector('#formulario-login');
       afirmar((await pAtras.textContent('#alerta')).trim() === MENSAJE_INACTIVIDAD, 'tras atrás falta el aviso de inactividad');

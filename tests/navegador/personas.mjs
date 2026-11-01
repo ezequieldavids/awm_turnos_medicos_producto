@@ -1,8 +1,8 @@
-// Recorridos de TUR-003 en un navegador real (T-004, T-005): pacientes y profesionales, AC-001 a AC-008.
+// Recorridos en un navegador real: pacientes y profesionales.
 //
 // Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR (specs/TUR-003/artifacts).
+// ARTEFACTOS_DIR.
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:personas
 // Cada ejecución crea pacientes y profesionales con DNI y matrícula únicos (no hay borrado físico).
@@ -122,7 +122,7 @@ async function main() {
     await pagina.waitForURL((url) => new URL(url).pathname === '/administrador.html');
     await pagina.waitForSelector('#contenido:not(.d-none)');
 
-    // AC-008: accesos del panel.
+    // Accesos del panel.
     await comprobar('AC-008', 'panel del administrador: Profesionales y Pacientes abren su gestión; no queda ninguna opción pendiente (TUR-005)', async () => {
       const enlaces = await pagina.locator('#opciones a.btn-outline-primary').allTextContents();
       afirmar(JSON.stringify(enlaces) === JSON.stringify(['Usuarios', 'Especialidades', 'Profesionales', 'Pacientes', 'Consultorios', 'Agendas', 'Ver turnos', 'Ver reportes']), `enlaces: ${enlaces}`);
@@ -340,7 +340,7 @@ async function main() {
 
     await contexto.close();
 
-    // ---- Recepción y control de acceso (AC-007, AC-008) ----
+    // ---- Recepción y control de acceso ----
     await comprobar('AC-007', 'recepcionista: ve Pacientes y Turnos, gestiona pacientes y la pantalla de Profesionales la devuelve a su panel', async () => {
       const c = await navegador.newContext({ viewport: ESCRITORIO });
       const p = await c.newPage();
@@ -371,7 +371,7 @@ async function main() {
         await p.waitForURL((url) => new URL(url).pathname === panel);
         await p.waitForSelector('#contenido:not(.d-none)');
         const enlaces = await p.locator('#opciones a.btn-outline-primary').allTextContents();
-        // TUR-010: el panel del paciente suma «Mis datos personales» (enlace).
+        // El panel del paciente suma «Mis datos personales» (enlace).
         const esperados = { profesional: ['Mi agenda', 'Mis turnos'], paciente: ['Mis datos personales', 'Mis turnos'] };
         afirmar(JSON.stringify(enlaces) === JSON.stringify(esperados[rol]), `enlaces: ${enlaces}`);
         const archivo = await captura(p, `AC-007-panel-${rol}-movil.png`);

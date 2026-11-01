@@ -24,7 +24,7 @@ final class UsuarioRepositorio
         return $fila === false ? null : $fila;
     }
 
-    // Lee la cuenta actual para cada petición autenticada (TUR-005, Q-5): estado y rol vigentes, no los de la sesión.
+    // Lee la cuenta actual para cada petición autenticada: estado y rol vigentes, no los de la sesión.
     public function buscarPorId(int $id): ?array
     {
         $consulta = Database::conexion()->prepare(

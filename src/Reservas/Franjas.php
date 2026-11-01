@@ -6,7 +6,7 @@ namespace Turnos\Reservas;
 
 use DateTimeImmutable;
 
-// Reglas de franjas horarias de TUR-007 (PRD H.3): una franja es un tramo de la grilla de una agenda, en su día de la semana
+// Reglas de franjas horarias de los turnos: una franja es un tramo de la grilla de una agenda, en su día de la semana
 // y dentro de su vigencia. Funciones puras, sin acceso a la base.
 final class Franjas
 {

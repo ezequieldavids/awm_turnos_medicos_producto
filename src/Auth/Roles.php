@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Turnos\Auth;
 
-// Roles del sistema (PRD A.5) con su panel y las opciones autorizadas.
+// Roles del sistema con su panel y las opciones autorizadas.
 // Las opciones de módulos aún no implementados se muestran como pendientes, no como funciones terminadas;
 // las implementadas llevan `ruta` y se muestran como enlace.
 final class Roles

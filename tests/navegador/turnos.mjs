@@ -1,8 +1,8 @@
-// Recorridos de TUR-007 en un navegador real: turnos y disponibilidad, AC-001 a AC-009 (interfaz y flujos).
+// Recorridos en un navegador real: turnos y disponibilidad (interfaz y flujos).
 //
-// Requiere la aplicación levantada con la base de db/schema.sql (secciones TUR-004 y TUR-007) y Chrome instalado.
+// Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR (specs/TUR-007/artifacts).
+// ARTEFACTOS_DIR.
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:turnos
 // Cada ejecución crea consultorios, profesionales, agendas, pacientes y turnos con datos únicos (no hay borrado físico).
@@ -147,7 +147,7 @@ async function main() {
     const original = await profesionalConAgenda(`Origen${sufijo}`, '09:00');
     const destino = await profesionalConAgenda(nombreDestino, '09:00');
 
-    // Paciente: panel, búsqueda, reserva (AC-001, AC-002, AC-009).
+    // Paciente: panel, búsqueda, reserva.
     const contextoPaciente = await navegador.newContext({ viewport: ESCRITORIO });
     const paciente = await contextoPaciente.newPage();
     await ingresar(paciente, PACIENTE);
@@ -197,7 +197,7 @@ async function main() {
       await movil.close();
     });
 
-    // AC-004: cancelar el turno libera la franja.
+    // Cancelar el turno libera la franja.
     await comprobar('AC-004', 'el paciente cancela el turno y la franja vuelve a aparecer en la búsqueda', async () => {
       paciente.once('dialog', (dialogo) => dialogo.accept());
       const respuesta = paciente.waitForResponse((r) => /\/api\/turnos\/\d+\/estado$/.test(new URL(r.url()).pathname));
@@ -211,7 +211,7 @@ async function main() {
       afirmar(await filaFranja(paciente, '09:00 a 09:15').count() === 1, 'la franja cancelada no volvió a estar libre');
     });
 
-    // AC-005: reprogramar a otro profesional de la misma especialidad.
+    // Reprogramar a otro profesional de la misma especialidad.
     await comprobar('AC-005', 'reprogramación a otro profesional de la misma especialidad, con captura del modal', async () => {
       await api(paciente, 'POST', '/api/turnos', { agenda: original.agenda, fecha, horaInicio: '09:30' });
       await paciente.reload();
@@ -256,7 +256,7 @@ async function main() {
       await movil.close();
     });
 
-    // AC-006: listado de recepción con filtros.
+    // Listado de recepción con filtros.
     await comprobar('AC-006', 'recepción lista los turnos del día, filtrados por fecha, en 1280×800', async () => {
       const contextoRecepcion = await navegador.newContext({ viewport: ESCRITORIO });
       const recepcion = await contextoRecepcion.newPage();
@@ -279,7 +279,7 @@ async function main() {
       await abrir(pagina, 'turnos.html');
       await pagina.waitForSelector(`#filas tr:has-text("${fecha}")`);
       afirmar(await pagina.locator('#columna-paciente').isHidden(), 'el paciente ve la columna de paciente');
-      // REV-TUR-007-004: en 390 px el profesional y la especialidad de cada turno deben verse.
+      // En 390 px el profesional y la especialidad de cada turno deben verse.
       const detalle = pagina.locator('#filas small', { hasText: nombreDestino }).first();
       afirmar(await detalle.isVisible(), 'en móvil no se ve el profesional de cada turno');
       afirmar(await sinDesborde(pagina), 'el historial desborda horizontalmente en móvil');
@@ -287,7 +287,7 @@ async function main() {
       await movil.close();
     });
 
-    // AC-007 y AC-009: el profesional ve sus turnos, sin formulario de reserva ni acciones de gestión.
+    // El profesional ve sus turnos, sin formulario de reserva ni acciones de gestión.
     await comprobar('AC-007', 'el profesional lista sus turnos sin «Reservar turno» ni acciones de gestión', async () => {
       const contextoProfesional = await navegador.newContext({ viewport: ESCRITORIO });
       const profesional = await contextoProfesional.newPage();

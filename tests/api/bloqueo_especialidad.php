@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Auxiliar de test_agendas.py (TUR-004, REV-TUR-004-016): mantiene abierta una desactivación de especialidad
+// Auxiliar de test_agendas.py: mantiene abierta una desactivación de especialidad
 // y, tras esperar, la confirma. Mientras tanto, un alta de agenda con esa especialidad debe esperar y responder 400.
 // Uso: php tests/api/bloqueo_especialidad.php <especialidad> <segundos>
 // Imprime «bloqueado» cuando retiene la fila y «confirmado» al cerrar la transacción.

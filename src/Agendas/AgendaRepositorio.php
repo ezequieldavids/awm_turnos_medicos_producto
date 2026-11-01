@@ -11,7 +11,7 @@ use Turnos\Database;
 use Turnos\Http\HttpException;
 use Turnos\Reservas\TurnoRepositorio;
 
-// Agendas semanales de cada profesional (CU-05, TUR-004). La baja es lógica (`activa`).
+// Agendas semanales de cada profesional. La baja es lógica (`activa`).
 // Las altas y los cambios que pueden superponerse se validan dentro de una transacción con filas bloqueadas.
 final class AgendaRepositorio
 {
@@ -132,7 +132,7 @@ final class AgendaRepositorio
                 throw new HttpException(400, 'especialidad_invalida', 'La especialidad no está asignada al profesional o está inactiva: elegí una de sus especialidades activas.');
             }
             $this->validarSuperposicion($id ?? 0, $datos);
-            // REV-TUR-007-001: editar una agenda con turnos confirmados a futuro se rechaza (409 turnos_futuros);
+            // Editar una agenda con turnos confirmados a futuro se rechaza (409 turnos_futuros);
             // esos turnos se cancelan o reprograman antes. Así no quedan turnos fuera de la grilla ni superpuestos.
             if ($id !== null) {
                 TurnoRepositorio::exigirSinTurnosFuturos('a.id_agenda = :id', ['id' => $id]);
@@ -164,7 +164,7 @@ final class AgendaRepositorio
         return $id;
     }
 
-    // TUR-004 (REV-TUR-004-018): desactiva en bloque las agendas activas que cumplen $donde (condición con parámetros
+    // Desactiva en bloque las agendas activas que cumplen $donde (condición con parámetros
     // nombrados). Bloquea las filas en orden de clave primaria antes de cambiarlas, para que dos operaciones que tocan
     // las mismas agendas (desactivar especialidad, desactivar o editar profesional) no se interbloqueen.
     // Devuelve cuántas se desactivaron. Debe llamarse dentro de una transacción.
@@ -216,7 +216,7 @@ final class AgendaRepositorio
         ], true);
     }
 
-    // Desactivar una agenda con turnos confirmados futuros se rechaza (TUR-007, Q-1). Bloquea profesional y consultorio en el
+    // Desactivar una agenda con turnos confirmados futuros se rechaza. Bloquea profesional y consultorio en el
     // mismo orden que las reservas de turnos, para que una reserva en curso no quede sin verificar.
     private function desactivar(int $id): void
     {
@@ -274,8 +274,8 @@ final class AgendaRepositorio
         return $activo === false ? null : (bool) $activo;
     }
 
-    // FOR SHARE: si otra operación está desactivando la especialidad, esta alta espera a que confirme y ve `activa = 0`
-    // (REV-TUR-004-016). Así no queda una agenda activa con especialidad inactiva.
+    // FOR SHARE: si otra operación está desactivando la especialidad, esta alta espera a que confirme y ve `activa = 0`.
+    // Así no queda una agenda activa con especialidad inactiva.
     private function especialidadActivaDelProfesional(int $profesional, int $especialidad): bool
     {
         $consulta = Database::conexion()->prepare(

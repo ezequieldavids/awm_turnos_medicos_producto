@@ -1,8 +1,8 @@
-// Recorridos de TUR-005 en un navegador real (T-005, T-006): administración de usuarios y roles, AC-001 a AC-008.
+// Recorridos en un navegador real: administración de usuarios y roles.
 //
 // Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR (specs/TUR-005/artifacts).
+// ARTEFACTOS_DIR.
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:usuarios
 // Cada ejecución crea personas, pacientes y cuentas con DNI únicos (la API no borra: sólo desactiva).
@@ -148,7 +148,7 @@ async function main() {
     await admin.waitForURL((url) => new URL(url).pathname === '/administrador.html');
     await admin.waitForSelector('#contenido:not(.d-none)');
 
-    // AC-007: el panel del administrador ofrece Usuarios como enlace; se captura el panel antes de navegar, en ambos viewports.
+    // El panel del administrador ofrece Usuarios como enlace; se captura el panel antes de navegar, en ambos viewports.
     await comprobar('AC-007', 'panel del administrador (1280×800 y 390×844): Usuarios es un enlace y abre la gestión', async () => {
       const enlaces = await admin.locator('#opciones a.btn-outline-primary').allTextContents();
       afirmar(enlaces.includes('Usuarios'), `enlaces: ${enlaces}`);
@@ -168,7 +168,7 @@ async function main() {
       return `${desktop}; ${archivoMovil}; abre /usuarios.html`;
     });
 
-    // AC-001: alta para una persona existente sin cuenta; la cuenta aparece y entra con su rol.
+    // Alta para una persona existente sin cuenta; la cuenta aparece y entra con su rol.
     await comprobar('AC-001', 'alta de cuenta para una persona existente: aparece en el listado y entra con su rol', async () => {
       await crearPacienteSinCuenta(admin, dniPaciente);
       await abrirUsuarios(admin);
@@ -186,7 +186,7 @@ async function main() {
       return `HTTP 201; login → /paciente.html; ${archivo}`;
     });
 
-    // AC-002: persona nueva con nombre y apellido; sin nombre se marca el campo y no se guarda.
+    // Persona nueva con nombre y apellido; sin nombre se marca el campo y no se guarda.
     await comprobar('AC-002', 'persona nueva: 201 con nombre y apellido; sin nombre el campo se marca y no se crea la cuenta', async () => {
       const estado = await crearCuenta(admin, {
         dni: dniNuevo, nombre: 'Recepción', apellido: `Nueva${sufijo}`, rol: 'recepcionista', contrasena: CONTRASENA,
@@ -212,7 +212,7 @@ async function main() {
       return `201 con persona nueva; 400 sin nombre, campo marcado, nada guardado`;
     });
 
-    // AC-003: validaciones visibles en el formulario; ninguna guarda.
+    // Validaciones visibles en el formulario; ninguna guarda.
     await comprobar('AC-003', 'validaciones: DNI mal formado, rol sin registro y contraseña corta se muestran y no guardan', async () => {
       const intentos = [
         { datos: { dni: 'ABC1234', nombre: 'X', apellido: 'Y', rol: 'recepcionista', contrasena: CONTRASENA }, campo: 'dni' },
@@ -229,7 +229,7 @@ async function main() {
       return 'DNI, rol (409) y contraseña (400) marcan su campo; el formulario queda abierto';
     });
 
-    // AC-004: desactivar cierra la sesión abierta de la cuenta; reactivar la restaura.
+    // Desactivar cierra la sesión abierta de la cuenta; reactivar la restaura.
     await comprobar('AC-004', 'desactivar: la sesión abierta responde 401 y el login falla; reactivar restaura el acceso', async () => {
       const estado = await crearCuenta(admin, {
         dni: dniSesion, nombre: 'Sesión', apellido: `Abierta${sufijo}`, rol: 'recepcionista', contrasena: CONTRASENA,
@@ -241,7 +241,7 @@ async function main() {
       await p.waitForURL((url) => new URL(url).pathname === '/recepcionista.html');
       await p.waitForSelector('#contenido:not(.d-none)');
 
-      // Búsqueda por apellido (AC-008) y cambio de rol con éxito, en ida y vuelta, con el listado mostrando el rol nuevo.
+      // Búsqueda por apellido y cambio de rol con éxito, en ida y vuelta, con el listado mostrando el rol nuevo.
       await buscar(admin, `Abierta${sufijo}`);
       afirmar(await fila(admin, dniSesion).count() === 1, 'la búsqueda por apellido no encuentra la cuenta');
       await buscar(admin, dniSesion);
@@ -283,7 +283,7 @@ async function main() {
       return 'sesión abierta → 401 tras desactivar; login 401; reactivada entra';
     });
 
-    // AC-005: restablecer contraseña; la anterior deja de valer.
+    // Restablecer contraseña; la anterior deja de valer.
     await comprobar('AC-005', 'restablecer contraseña: la nueva entra y la anterior no', async () => {
       await buscar(admin, dniSesion);
       await fila(admin, dniSesion).getByRole('button', { name: 'Contraseña' }).click();
@@ -303,7 +303,7 @@ async function main() {
       return 'anterior → 401; nueva → 200';
     });
 
-    // AC-006: nadie se desactiva ni quita su rol administrador; la pantalla muestra el motivo.
+    // Nadie se desactiva ni quita su rol administrador; la pantalla muestra el motivo.
     await comprobar('AC-006', 'autoprotección: el administrador no puede desactivarse ni quitarse su rol', async () => {
       await buscar(admin, ADMIN.dni);
       await fila(admin, ADMIN.dni).getByRole('button', { name: 'Desactivar' }).click();
@@ -322,7 +322,7 @@ async function main() {
       return 'desactivar y cambiar rol propios → 409 con motivo; la cuenta sigue activa';
     });
 
-    // AC-007: recepción no ve la gestión: el panel no la ofrece y la pantalla y la API responden 403.
+    // Recepción no ve la gestión: el panel no la ofrece y la pantalla y la API responden 403.
     await comprobar('AC-007', 'recepcionista: el panel no ofrece Usuarios, la pantalla y la API no se abren', async () => {
       const c = await navegador.newContext({ viewport: ESCRITORIO });
       const p = await c.newPage();
@@ -350,7 +350,7 @@ async function main() {
       return 'API 401; redirigido al login';
     });
 
-    // AC-008: móvil sin desborde; el filtro por estado muestra sólo las cuentas inactivas.
+    // Móvil sin desborde; el filtro por estado muestra sólo las cuentas inactivas.
     await comprobar('AC-008', 'móvil 390×844: listado y formulario sin desborde horizontal; el filtro por estado funciona', async () => {
       const movil = await navegador.newContext({ viewport: MOVIL });
       const m = await movil.newPage();
@@ -385,7 +385,7 @@ async function main() {
       const formulario = await captura(m, 'AC-008-formulario-movil.png');
       await cancelar(m);
 
-      // Recorrido móvil completo: alta, cambio de rol y desactivación, con capturas en 390×844 (REV-013).
+      // Recorrido móvil completo: alta, cambio de rol y desactivación, con capturas en 390×844.
       const dniMovil = dniUnico();
       const altaMovil = await crearCuenta(m, { dni: dniMovil, nombre: 'Movil', apellido: `Cuenta${sufijo}`, rol: 'recepcionista', contrasena: CONTRASENA });
       afirmar(altaMovil === 201, `alta en móvil: HTTP ${altaMovil}`);

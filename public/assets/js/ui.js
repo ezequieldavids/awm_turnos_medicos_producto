@@ -1,6 +1,6 @@
 import { iniciarBarra } from '/assets/js/barra.js';
 
-// Piezas comunes de las pantallas de gestión (TUR-003, estilo común de TUR-009).
+// Piezas comunes de las pantallas de gestión.
 export const alerta = document.querySelector('#alerta');
 
 export function mostrarError(mensaje) {
@@ -41,13 +41,13 @@ export function estadoYAcciones(fila, activo, etiquetas, acciones, clase = null)
   fila.append(estado, columna);
 }
 
-// Marca que el servidor deja al cerrar por inactividad (TUR-008): dura 60 s y sirve al volver con «atrás».
+// Marca que el servidor deja al cerrar por inactividad: dura 60 s y sirve al volver con «atrás».
 export function hayAvisoDeInactividad() {
   return document.cookie.split(';').some((cookie) => cookie.trim() === 'turnos_inactividad=1');
 }
 
 // Devuelve false si la sesión no sirve (ya se redirigió al login/panel).
-// Una sesión vencida por inactividad (TUR-008) vuelve al inicio con el aviso.
+// Una sesión vencida por inactividad vuelve al inicio con el aviso.
 export function sesionValida(respuesta) {
   if (respuesta.estado === 401 && (respuesta.datos?.error?.codigo === 'sesion_expirada' || hayAvisoDeInactividad())) {
     location.replace('/?sesion=inactividad');

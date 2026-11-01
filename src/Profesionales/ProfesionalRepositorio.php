@@ -61,7 +61,7 @@ final class ProfesionalRepositorio
     }
 
     // Devuelve los ids que no se pueden asignar: inexistentes o inactivas, salvo las que el profesional ya tiene
-    // (una especialidad desactivada después no impide editar al profesional, REV-TUR-003-001).
+    // (una especialidad desactivada después no impide editar al profesional).
     public function especialidadesNoAsignables(array $ids, ?int $idProfesional): array
     {
         $marcas = implode(',', array_fill(0, count($ids), '?'));
@@ -105,13 +105,13 @@ final class ProfesionalRepositorio
         return $id;
     }
 
-    // Devuelve cuántas agendas se desactivaron por quitar especialidades (TUR-004, A-05).
+    // Devuelve cuántas agendas se desactivaron por quitar especialidades.
     public function modificar(int $id, array $persona, string $matricula, array $especialidades): int
     {
         $conexion = Database::conexion();
         $conexion->beginTransaction();
         try {
-            // REV-TUR-004-019: bloquear el profesional antes de leer. Una lectura sin bloqueo fijaría el snapshot antes de
+            // Bloquear el profesional antes de leer. Una lectura sin bloqueo fijaría el snapshot antes de
             // esperar a un alta concurrente, y la desactivación de agendas no vería la agenda que esa alta confirma.
             $consulta = $conexion->prepare('SELECT id_persona FROM profesional WHERE id_profesional = :id FOR UPDATE');
             $consulta->execute(['id' => $id]);
@@ -129,7 +129,7 @@ final class ProfesionalRepositorio
         return $desactivadas;
     }
 
-    // TUR-004 (A-05): al desactivar al profesional se desactivan también sus agendas. Reactivarlo no las reactiva:
+    // Al desactivar al profesional se desactivan también sus agendas. Reactivarlo no las reactiva:
     // cada agenda se vuelve a activar por separado, con sus validaciones.
     // Devuelve cuántas agendas se desactivaron con el profesional.
     public function cambiarEstado(int $id, bool $activo): int
@@ -169,7 +169,7 @@ final class ProfesionalRepositorio
         }
     }
 
-    // TUR-004 (A-05): una agenda cuya especialidad deja de estar asignada al profesional se desactiva.
+    // Una agenda cuya especialidad deja de estar asignada al profesional se desactiva.
     private function reemplazarEspecialidades(int $id, array $especialidades): int
     {
         $conexion = Database::conexion();

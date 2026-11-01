@@ -11,7 +11,7 @@ use Turnos\Database;
 use Turnos\Reservas\Franjas;
 use Turnos\Reservas\TurnoRepositorio;
 
-// Reporte de turnos (TUR-006, RF-12). Los conteos se agrupan en SQL por especialidad y profesional (los de la agenda del
+// Reporte de turnos. Los conteos se agrupan en SQL por especialidad y profesional (los de la agenda del
 // turno); la capacidad de la tasa de ocupación se calcula con las agendas activas tal como están hoy, sin historial.
 final class ReporteRepositorio
 {

@@ -1,7 +1,7 @@
 import { pedir } from '/assets/js/api.js';
 import { iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
 
-// Autoconsulta de datos personales del paciente (TUR-010): sólo lectura, sobre los datos de la sesión.
+// Autoconsulta de datos personales del paciente: sólo lectura, sobre los datos de la sesión.
 const CAMPOS = [
   ['dni', 'DNI'],
   ['nombre', 'Nombre'],

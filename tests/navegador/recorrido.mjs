@@ -1,10 +1,10 @@
-// Recorridos de TUR-001 en un navegador real (T-003, T-004): AC-001 a AC-005.
+// Recorridos en un navegador real.
 //
 // Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales:
 //   APP_URL            (por defecto http://127.0.0.1:8080)
 //   CHROME_PATH        (por defecto /usr/bin/google-chrome)
-//   ARTEFACTOS_DIR     (por defecto specs/TUR-001/artifacts)
+//   ARTEFACTOS_DIR
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador
 // Termina con código 1 si alguna comprobación falla. Guarda capturas y un informe JSON en ARTEFACTOS_DIR.
@@ -67,7 +67,7 @@ async function ingresar(page, dni, password) {
   await page.click('button[type=submit]');
 }
 
-// Título de cada tarjeta del panel (TUR-009: una tarjeta por opción autorizada).
+// Título de cada tarjeta del panel (una tarjeta por opción autorizada).
 async function nombresDeOpciones(page) {
   return page.locator('#opciones article h2').allTextContents();
 }
@@ -89,7 +89,7 @@ async function main() {
   const navegador = await chromium.launch({ executablePath: CHROME, headless: true });
 
   try {
-    // AC-001: login correcto y llegada al panel del rol.
+    // Login correcto y llegada al panel del rol.
     await comprobar('AC-001', 'login del administrador lleva a su panel y muestra su nombre', async () => {
       const contexto = await navegador.newContext({ viewport: ESCRITORIO });
       const pagina = await contexto.newPage();
@@ -105,7 +105,7 @@ async function main() {
       return `API 200; ${archivo}`;
     });
 
-    // AC-002: credenciales incorrectas y cuenta inactiva con el mismo mensaje, sin sesión.
+    // Credenciales incorrectas y cuenta inactiva con el mismo mensaje, sin sesión.
     await comprobar('AC-002', 'contraseña errónea muestra mensaje genérico y no abre sesión', async () => {
       const contexto = await navegador.newContext({ viewport: ESCRITORIO });
       const pagina = await contexto.newPage();
@@ -131,7 +131,7 @@ async function main() {
       return archivo;
     });
 
-    // AC-003: sin sesión, abrir un panel redirige al login.
+    // Sin sesión, abrir un panel redirige al login.
     await comprobar('AC-003', 'abrir un panel sin sesión redirige al login', async () => {
       const contexto = await navegador.newContext({ viewport: ESCRITORIO });
       const pagina = await contexto.newPage();
@@ -146,7 +146,7 @@ async function main() {
       return `API 401; ${archivo}`;
     });
 
-    // AC-004: cada rol ve su panel; cruzar de panel redirige al propio; sin desborde horizontal en móvil.
+    // Cada rol ve su panel; cruzar de panel redirige al propio; sin desborde horizontal en móvil.
     for (const [rol, cuenta] of Object.entries(CUENTAS)) {
       await comprobar('AC-004', `panel del rol ${rol} en escritorio y móvil con sus opciones`, async () => {
         const archivos = [];
@@ -196,7 +196,7 @@ async function main() {
       return `opciones del paciente: ${opciones.length}`;
     });
 
-    // AC-005: cerrar sesión, comprobar que atrás no muestra datos y que la API responde 401.
+    // Cerrar sesión, comprobar que atrás no muestra datos y que la API responde 401.
     await comprobar('AC-005', 'cerrar sesión y volver con atrás no muestra datos protegidos', async () => {
       const contexto = await navegador.newContext({ viewport: ESCRITORIO });
       const pagina = await contexto.newPage();
@@ -205,7 +205,7 @@ async function main() {
       await pagina.waitForSelector('#contenido:not(.d-none)');
       const archivo1 = await captura(pagina, 'AC-005-01-panel-admin-desktop.png');
 
-      // El diálogo de confirmación se cancela de tres maneras sin cerrar la sesión (TUR-009 AC-005).
+      // El diálogo de confirmación se cancela de tres maneras sin cerrar la sesión.
       for (const [como, cerrar] of [['Cancelar', () => pagina.click('#cancelar-cerrar-sesion')], ['Escape', () => pagina.keyboard.press('Escape')], ['×', () => pagina.click('#dialogo-x')]]) {
         await pagina.click('#cerrar-sesion');
         await pagina.waitForSelector('#dialogo-cerrar-sesion[open]');

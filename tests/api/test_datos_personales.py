@@ -1,7 +1,7 @@
-"""Pruebas funcionales de TUR-010: autoconsulta de datos personales del paciente (T-004, AC-002 a AC-006).
+"""Pruebas funcionales de autoconsulta de datos personales del paciente.
 
 Requiere el entorno levantado con el esquema de db/schema.sql. Variables opcionales como en test_autenticacion.py.
-Cada ejecución crea pacientes con DNI único y, cuando hace falta, su cuenta de acceso. La lectura de AC-002 y AC-005
+Cada ejecución crea pacientes con DNI único y, cuando hace falta, su cuenta de acceso. La lectura de los datos propios
 usa el paciente semilla (20000004) sin modificarlo.
 
 Ejecutar desde la raíz del proyecto:
@@ -83,7 +83,7 @@ class DatosPersonalesTest(unittest.TestCase):
                 self.assertEqual('Tu rol no tiene acceso a este recurso.', cuerpo['error']['mensaje'])
 
     def test_registro_inactivo_responde_404_aunque_la_cuenta_siga_activa(self):
-        # Q-8 inactiva la cuenta al dar de baja al paciente por API; este caso sólo se arma con SQL directo.
+        # Dar de baja al paciente por API también inactiva la cuenta; este caso sólo se arma con SQL directo.
         paciente, cliente = paciente_con_cuenta(self.recepcion, self.admin)
         consultar(f"UPDATE paciente SET activo = 0 WHERE id_paciente = {paciente['id']}")
 

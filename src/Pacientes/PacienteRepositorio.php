@@ -53,7 +53,7 @@ final class PacienteRepositorio
         return $fila === false ? null : $this->normalizar($fila);
     }
 
-    // Registro activo de paciente de la cuenta de la sesión (TUR-010): usuario.id_persona → paciente.id_persona.
+    // Registro activo de paciente de la cuenta de la sesión: usuario.id_persona → paciente.id_persona.
     public function buscarDeUsuario(int $idUsuario): ?array
     {
         $consulta = Database::conexion()->prepare(self::SELECT . ' JOIN usuario u ON u.id_persona = pa.id_persona WHERE u.id_usuario = :id AND pa.activo = 1');
@@ -63,7 +63,7 @@ final class PacienteRepositorio
         return $fila === false ? null : $this->normalizar($fila);
     }
 
-    // Crea la persona o, si el DNI ya existe sin rol de paciente, la vincula y actualiza sus datos civiles (CU-02).
+    // Crea la persona o, si el DNI ya existe sin rol de paciente, la vincula y actualiza sus datos civiles.
     public function crear(array $persona, ?string $obraSocial): int
     {
         $conexion = Database::conexion();
@@ -109,7 +109,7 @@ final class PacienteRepositorio
         }
     }
 
-    // REV-TUR-007-008 (decisión del usuario): desactivar un paciente con turnos confirmados a futuro responde 409
+    // Decisión del usuario: desactivar un paciente con turnos confirmados a futuro responde 409
     // turnos_futuros y no cambia nada. Bloquea la fila del paciente primero, como las reservas de turnos.
     public function cambiarEstado(int $id, bool $activo): void
     {

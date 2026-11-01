@@ -33,7 +33,7 @@ final class PersonaRepositorio
     }
 
     // El DNI identifica a la persona y no se modifica. En una edición los datos opcionales vacíos se borran;
-    // al vincular un rol a una persona existente (`$conservarOpcionales`) lo no enviado conserva su valor (REV-TUR-003-002).
+    // al vincular un rol a una persona existente (`$conservarOpcionales`) lo no enviado conserva su valor.
     public function actualizar(int $id, array $datos, bool $conservarOpcionales = false): void
     {
         unset($datos['dni']);
@@ -52,7 +52,7 @@ final class PersonaRepositorio
             Database::conexion()->prepare($sql)->execute($parametros);
         } catch (PDOException $error) {
             // Duplicados por clave única → 409 sin datos del registro (ni el DNI ni el email llegan al log).
-            // Un DNI repetido en una carrera se detecta aquí, para pacientes (TUR-003) y cuentas (TUR-005).
+            // Un DNI repetido en una carrera se detecta aquí, para pacientes/profesionales y cuentas.
             if (($error->errorInfo[1] ?? null) === 1062) {
                 if (str_contains($error->getMessage(), 'uk_persona_email')) {
                     throw new HttpException(409, 'email_duplicado', 'Ese email ya está registrado para otra persona.');

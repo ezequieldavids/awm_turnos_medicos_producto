@@ -1,7 +1,7 @@
 import { pedir } from '/assets/js/api.js';
 import { boton, celda, estadoYAcciones, iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
 
-// Turnos médicos (TUR-007): búsqueda de horarios libres, reserva, cancelación y reprogramación según el rol.
+// Turnos médicos: búsqueda de horarios libres, reserva, cancelación y reprogramación según el rol.
 const ROLES_QUE_RESERVAN = ['paciente', 'recepcionista', 'administrador'];
 const ROLES_QUE_REGISTRAN_ASISTENCIA = ['profesional', 'recepcionista', 'administrador'];
 const ROLES_QUE_VEN_TODOS = ['recepcionista', 'administrador'];
@@ -106,7 +106,7 @@ function acciones(turno) {
       boton('Cancelar', 'btn-outline-danger', () => cancelar(turno)),
     );
   }
-  // Asistencia (TUR-006): sólo cuando el turno ya comenzó; se puede corregir entre atendido y ausente.
+  // Asistencia: sólo cuando el turno ya comenzó; se puede corregir entre atendido y ausente.
   if (ROLES_QUE_REGISTRAN_ASISTENCIA.includes(rol) && turno.pasado) {
     if (turno.estado === 'confirmado') {
       botones.push(
@@ -131,12 +131,12 @@ function pintarTurnos(turnos) {
     fila.dataset.id = turno.id;
 
     const cuando = celda(`${turno.fecha} · ${horario(turno)}`);
-    // En móvil las columnas de profesional y especialidad se ocultan: su dato va debajo del horario (REV-TUR-007-004).
+    // En móvil las columnas de profesional y especialidad se ocultan: su dato va debajo del horario.
     const detalle = document.createElement('small');
     detalle.className = 'd-block text-body-secondary d-md-none text-break';
     detalle.textContent = `${nombre(turno.profesional)} · ${turno.especialidad.nombre}`;
     cuando.append(detalle);
-    // El motivo se muestra como texto (REV-TUR-007-005): nunca se inserta como HTML.
+    // El motivo se muestra como texto: nunca se inserta como HTML.
     if (turno.motivo) {
       const motivo = document.createElement('small');
       motivo.className = 'd-block text-body-secondary text-break';
@@ -296,7 +296,7 @@ async function reservar(franja) {
     mostrar(reservaMensaje, `Turno reservado: ${etiquetaFranja(franja)} con ${nombre(franja.profesional)}.`, 'success');
     reservaMotivo.value = '';
   } else {
-    // Ante un conflicto se informa el motivo y la grilla se vuelve a consultar, como pide CU-03.
+    // Ante un conflicto se informa el motivo y la grilla se vuelve a consultar.
     mostrar(reservaMensaje, mensajeDeError(respuesta, 'No pudimos reservar el turno.'), 'danger');
   }
   await buscar(false);
@@ -324,7 +324,7 @@ async function buscarParaReprogramar() {
 
   let respuesta;
   try {
-    // La reprogramación mantiene la especialidad del turno; el profesional puede cambiar (Q-3).
+    // La reprogramación mantiene la especialidad del turno; el profesional puede cambiar.
     respuesta = await buscarFranjas(reprogramando.especialidad.id, reprogramarDesde.value, reprogramarHasta.value, '');
   } catch {
     mostrar(reprogramarError, 'No pudimos conectar con el servidor. Intentá nuevamente.', 'danger');

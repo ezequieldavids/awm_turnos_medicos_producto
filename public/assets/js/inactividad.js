@@ -1,9 +1,9 @@
 import { pedir } from '/assets/js/api.js';
 
-// Cierre por inactividad (TUR-008, Q-2): cuenta clic, tecla, toque y desplazamiento; renueva la sesión en el servidor
+// Cierre por inactividad: cuenta clic, tecla, toque y desplazamiento; renueva la sesión en el servidor
 // como mucho cada 60 segundos. Al vencer el límite que informa /api/sesion, la pestaña vuelve al inicio con el aviso.
 // No llama a /api/logout: la sesión es compartida por todas las pestañas del navegador y vence en el servidor
-// (decisión del usuario, REV-TUR-008-003).
+// (decisión del usuario).
 const RENOVACION_MS = 60_000;
 const EVENTOS = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
 

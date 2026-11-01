@@ -11,7 +11,7 @@ use Turnos\Http\Solicitud;
 use Turnos\Personas\DatosPersona;
 use Turnos\Usuarios\CuentaRepositorio;
 
-// Administración de cuentas de acceso y roles (TUR-005): sólo el administrador.
+// Administración de cuentas de acceso y roles: sólo el administrador.
 final class UsuarioControlador
 {
     private CuentaRepositorio $repositorio;
@@ -102,7 +102,7 @@ final class UsuarioControlador
         return $cuerpo['activo'];
     }
 
-    // Contraseña de 8 a 72 bytes (límite de bcrypt). Se guarda sólo el hash, nunca el valor (DEC-005, RNF-01).
+    // Contraseña de 8 a 72 bytes (límite de bcrypt). Se guarda sólo el hash, nunca el valor.
     private function hashContrasena(array $cuerpo): string
     {
         $contrasena = $cuerpo['contrasena'] ?? null;

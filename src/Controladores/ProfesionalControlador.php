@@ -11,8 +11,8 @@ use Turnos\Http\Solicitud;
 use Turnos\Personas\DatosPersona;
 use Turnos\Profesionales\ProfesionalRepositorio;
 
-// Gestión de profesionales (TUR-003): escritura y vista completa sólo del administrador;
-// la recepción lee los activos (insumo de TUR-004).
+// Gestión de profesionales: escritura y vista completa sólo del administrador;
+// la recepción lee los activos (insumo para las agendas).
 final class ProfesionalControlador
 {
     private ProfesionalRepositorio $repositorio;
@@ -68,7 +68,7 @@ final class ProfesionalControlador
         $this->existente($id);
         [$persona, $matricula, $especialidades] = $this->datos(false, $id);
 
-        // agendasDesactivadas: agendas que dejaron de estar activas por quitar especialidades (TUR-004, A-05).
+        // agendasDesactivadas: agendas que dejaron de estar activas por quitar especialidades.
         $desactivadas = $this->repositorio->modificar($id, $persona, $matricula, $especialidades);
 
         return ['profesional' => $this->existente($id), 'agendasDesactivadas' => $desactivadas];
@@ -83,7 +83,7 @@ final class ProfesionalControlador
             throw new HttpException(400, 'datos_invalidos', 'Indicá si el profesional queda activo (true) o inactivo (false).');
         }
 
-        // agendasDesactivadas: agendas desactivadas junto con el profesional (TUR-004, A-05).
+        // agendasDesactivadas: agendas desactivadas junto con el profesional.
         $desactivadas = $this->repositorio->cambiarEstado($id, $cuerpo['activo']);
 
         return ['profesional' => $this->existente($id), 'agendasDesactivadas' => $desactivadas];

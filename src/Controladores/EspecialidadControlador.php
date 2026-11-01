@@ -10,7 +10,7 @@ use Turnos\Especialidades\EspecialidadRepositorio;
 use Turnos\Http\HttpException;
 use Turnos\Http\Solicitud;
 
-// Gestión de especialidades (TUR-002): lectura de activas para cualquier usuario autenticado,
+// Gestión de especialidades: lectura de activas para cualquier usuario autenticado,
 // escritura y vista completa sólo del administrador.
 final class EspecialidadControlador
 {
@@ -82,7 +82,7 @@ final class EspecialidadControlador
             throw new HttpException(400, 'datos_invalidos', 'Indicá si la especialidad queda activa (true) o inactiva (false).');
         }
 
-        // agendasDesactivadas: agendas desactivadas junto con la especialidad (TUR-004, A-05).
+        // agendasDesactivadas: agendas desactivadas junto con la especialidad.
         $desactivadas = $this->repositorio->cambiarEstado($id, $cuerpo['activa']);
 
         return ['especialidad' => $this->existente($id), 'agendasDesactivadas' => $desactivadas];

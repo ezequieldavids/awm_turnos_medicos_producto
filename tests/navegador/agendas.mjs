@@ -1,8 +1,8 @@
-// Recorridos de TUR-004 en un navegador real (T-004, T-005): consultorios y agendas, AC-001 a AC-008.
+// Recorridos en un navegador real: consultorios y agendas.
 //
-// Requiere la aplicación levantada con la base de db/schema.sql (sección TUR-004) y Chrome instalado.
+// Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR (specs/TUR-004/artifacts).
+// ARTEFACTOS_DIR.
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:agendas
 // Cada ejecución crea consultorios, profesionales y agendas con datos únicos (no hay borrado físico).
@@ -115,7 +115,7 @@ async function main() {
     await pagina.waitForURL((url) => new URL(url).pathname === '/administrador.html');
     await pagina.waitForSelector('#contenido:not(.d-none)');
 
-    // AC-008: accesos del panel del administrador.
+    // Accesos del panel del administrador.
     await comprobar('AC-008', 'panel del administrador: Consultorios, Agendas y Turnos son enlaces; no queda ninguna opción pendiente (TUR-005)', async () => {
       const enlaces = await pagina.locator('#opciones a.btn-outline-primary').allTextContents();
       afirmar(JSON.stringify(enlaces.slice(-4)) === JSON.stringify(['Consultorios', 'Agendas', 'Ver turnos', 'Ver reportes']), `enlaces: ${enlaces}`);
@@ -132,7 +132,7 @@ async function main() {
       return `${escritorio}, ${archivoMovil}`;
     });
 
-    // AC-001 a AC-003: consultorios.
+    // Consultorios.
     await pagina.click('#opciones a:has-text("Consultorios")');
     await pagina.waitForURL((url) => new URL(url).pathname === '/consultorios.html');
     await pagina.waitForSelector('#contenido:not(.d-none)');
@@ -216,7 +216,7 @@ async function main() {
     const consultorioA = (await api(pagina, 'GET', `/api/consultorios?estado=todos&q=${numeroConsultorio}`)).datos.consultorios[0].id;
     const nombreProfesional = `Navegador${sufijo}, Agenda`;
 
-    // AC-004 a AC-006: agendas del administrador.
+    // Agendas del administrador.
     await abrir(pagina, 'administrador.html');
     await pagina.click('#opciones a:has-text("Agendas")');
     await pagina.waitForURL((url) => new URL(url).pathname === '/agendas.html');
@@ -280,7 +280,7 @@ async function main() {
     });
 
     await comprobar('AC-008', 'móvil: consultorios y agendas sin desborde horizontal; la tabla de agendas se filtra por profesional', async () => {
-      await pagina.selectOption('#filtro-estado', 'todas'); // la agenda de prueba ya está desactivada (AC-006)
+      await pagina.selectOption('#filtro-estado', 'todas'); // la agenda de prueba ya está desactivada
       await pagina.selectOption('#filtro-profesional', String(profesionalId));
       await pagina.waitForTimeout(400);
       const filas = await pagina.locator('#filas tr').allTextContents();
@@ -307,7 +307,7 @@ async function main() {
       return `${agendas}, ${consultorios}`;
     });
 
-    // AC-007: el profesional configura su propia agenda y no ve la de otros.
+    // El profesional configura su propia agenda y no ve la de otros.
     await comprobar('AC-007', 'profesional: Mi agenda y Mis turnos son sus enlaces; configura su agenda y consultorios le redirige a su panel', async () => {
       const c = await navegador.newContext({ viewport: ESCRITORIO });
       const p = await c.newPage();
@@ -355,7 +355,7 @@ async function main() {
       const enlaces = await p.locator('#opciones a.btn-outline-primary').allTextContents();
       afirmar(!enlaces.some((t) => t.includes('Agenda') || t.includes('Consultorio')), `enlaces: ${enlaces}`);
       afirmar(await estadoApi(p, '/api/agendas') === 200, 'la recepción debía poder leer agendas');
-      // REV-008: escribir sí debe fallar con 403, no sólo leer.
+      // Escribir sí debe fallar con 403, no sólo leer.
       afirmar((await api(p, 'POST', '/api/agendas', {})).estado === 403, 'la recepción no debía poder crear agendas');
       afirmar((await api(p, 'POST', '/api/consultorios', {})).estado === 403, 'la recepción no debía poder crear consultorios');
       await c.close();

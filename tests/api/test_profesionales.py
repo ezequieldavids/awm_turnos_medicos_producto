@@ -1,4 +1,4 @@
-"""Pruebas funcionales de TUR-003: profesionales contra la API real (T-003, AC-005 a AC-007).
+"""Pruebas funcionales de profesionales contra la API real.
 
 Requiere el entorno levantado con el esquema de db/schema.sql. Mismas variables que test_autenticacion.py.
 Cada ejecución crea profesionales con DNI y matrícula únicos y los deja en la base: la API no permite borrarlos.
@@ -48,7 +48,6 @@ class ProfesionalesTest(unittest.TestCase):
         self.assertEqual(esperado, estado, respuesta)
         return respuesta['error']['codigo']
 
-    # AC-005
     def test_ac005_crear_con_dos_especialidades_aparece_y_filtra(self):
         creado = self.crear()
         self.assertEqual(set(self.esp[:2]), {e['id'] for e in creado['especialidades']})
@@ -108,7 +107,6 @@ class ProfesionalesTest(unittest.TestCase):
             f"SELECT (SELECT COUNT(*) FROM paciente pa JOIN persona pe USING (id_persona) WHERE pe.dni = '{dni}'), "
             f"(SELECT COUNT(*) FROM profesional pr JOIN persona pe USING (id_persona) WHERE pe.dni = '{dni}')").pop().split('\t'))
 
-    # AC-006
     def test_ac006_modificar_reemplaza_especialidades(self):
         creado = self.crear()
         estado, cuerpo, _ = self.admin.pedir('PUT', f"/api/profesionales/{creado['id']}", datos_profesional(
@@ -127,7 +125,7 @@ class ProfesionalesTest(unittest.TestCase):
         _, leido, _ = self.admin.pedir('GET', f"/api/profesionales/{b['id']}")
         self.assertEqual((b['matricula'], set(self.esp[:2])), (leido['profesional']['matricula'], {e['id'] for e in leido['profesional']['especialidades']}))
 
-    # REV-TUR-003-001: una especialidad desactivada después no impide editar al profesional.
+    # Una especialidad desactivada después no impide editar al profesional.
     def test_ac006_especialidad_desactivada_despues_no_impide_editar(self):
         _, nueva, _ = self.admin.pedir('POST', '/api/especialidades', {'nombre': f'Temporal {uuid.uuid4().hex[:8]}'})
         temporal = nueva['especialidad']['id']
@@ -165,7 +163,6 @@ class ProfesionalesTest(unittest.TestCase):
         self.assertIn(estado, (200,))
         self.assertIn(self.admin.pedir('DELETE', f"/api/profesionales/{creado['id']}")[0], (404, 405))
 
-    # AC-007
     def test_ac007_sin_sesion_toda_ruta_responde_401(self):
         anonimo = Cliente()
         for metodo, ruta, cuerpo in (

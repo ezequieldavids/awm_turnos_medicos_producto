@@ -12,7 +12,7 @@ use Turnos\Http\HttpException;
 use Turnos\Personas\DatosPersona;
 use Turnos\Personas\PersonaRepositorio;
 
-// Cuentas de acceso (`usuario`) sobre `persona` (TUR-005). La baja es lógica (`estado`).
+// Cuentas de acceso (`usuario`) sobre `persona`. La baja es lógica (`estado`).
 // Los cambios que pueden dejar sin administradores bloquean primero a todos los activos, en orden fijo,
 // para que dos cambios simultáneos no desactiven a los dos administradores.
 final class CuentaRepositorio
@@ -104,7 +104,7 @@ final class CuentaRepositorio
         return $id;
     }
 
-    // Autoprotección (Q-6): nadie se quita su propio rol administrador.
+    // Autoprotección: nadie se quita su propio rol administrador.
     public function cambiarRol(int $id, string $rol, int $actor): void
     {
         $this->cambiar($id, function (array $cuenta, array $administradores) use ($id, $rol, $actor) {
@@ -123,7 +123,7 @@ final class CuentaRepositorio
         });
     }
 
-    // Autoprotección (Q-6) y último administrador activo. Reactivar exige el mismo registro que el alta (Q-4).
+    // Autoprotección y último administrador activo. Reactivar exige el mismo registro que el alta.
     public function cambiarEstado(int $id, bool $activo, int $actor): void
     {
         $this->cambiar($id, function (array $cuenta, array $administradores) use ($id, $activo, $actor) {
@@ -142,7 +142,7 @@ final class CuentaRepositorio
         });
     }
 
-    // La baja de un registro de paciente o profesional (TUR-003) desactiva la cuenta de ese mismo rol (Q-8).
+    // La baja de un registro de paciente o profesional desactiva la cuenta de ese mismo rol.
     // No reactiva nada: reactivar la cuenta sigue siendo una acción explícita con su propia comprobación de registro.
     public static function inactivarDelRegistro(int $idPersona, string $rol): void
     {
@@ -202,7 +202,7 @@ final class CuentaRepositorio
         }
     }
 
-    // Exige que la persona tenga registro activo del rol paciente o profesional (TUR-005, Q-4).
+    // Exige que la persona tenga registro activo del rol paciente o profesional.
     private function exigirRegistro(int $idPersona, string $rol): void
     {
         $tabla = match ($rol) {

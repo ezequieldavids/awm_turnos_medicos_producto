@@ -69,7 +69,7 @@ final class EspecialidadRepositorio
         return true;
     }
 
-    // TUR-004 (A-05): al desactivar una especialidad se desactivan las agendas que la usan; reactivarla no las reactiva.
+    // Al desactivar una especialidad se desactivan las agendas que la usan; reactivarla no las reactiva.
     // Devuelve cuántas agendas se desactivaron.
     public function cambiarEstado(int $id, bool $activa): int
     {

@@ -1,8 +1,8 @@
-"""Pruebas funcionales de TUR-008: cierre de sesión por inactividad contra la API real (T-001; AC-001, AC-002, AC-006, AC-007).
+"""Pruebas funcionales de cierre de sesión por inactividad contra la API real.
 
 Las pruebas de expiración necesitan el stack con SESION_INACTIVIDAD_SEGUNDOS=10; con otro valor se omiten con motivo,
-para que la suite completa con el valor por defecto (900 s) siga siendo estable. AC-007 siempre se ejecuta: compara el
-valor informado por /api/sesion con SESION_ESPERADA (por defecto 900).
+para que la suite completa con el valor por defecto (900 s) siga siendo estable. La prueba del límite informado siempre
+se ejecuta: compara el valor informado por /api/sesion con SESION_ESPERADA (por defecto 900).
 
 Ejecutar desde la raíz del proyecto, con el stack levantado con SESION_INACTIVIDAD_SEGUNDOS=10:
   python3 -B -X utf8 -m unittest discover -s tests/api -p 'test_sesion_inactividad.py' -v

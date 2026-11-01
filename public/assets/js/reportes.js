@@ -1,7 +1,7 @@
 import { pedir } from '/assets/js/api.js';
 import { celda, iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
 
-// Reportes e indicadores (TUR-006, CU-06): filtros de período, especialidad y profesional, tarjetas, desglose y CSV.
+// Reportes e indicadores: filtros de período, especialidad y profesional, tarjetas, desglose y CSV.
 const formulario = document.querySelector('#formulario');
 const fechaDesde = document.querySelector('#fecha-desde');
 const fechaHasta = document.querySelector('#fecha-hasta');
@@ -65,7 +65,7 @@ function pintar(reporte) {
   indicadores.classList.toggle('d-none', !hayTurnos);
   vacio.classList.toggle('d-none', hayTurnos);
   if (!hayTurnos) {
-    // Sin turnos no se muestran tarjetas con 0 % que parecerían un resultado (CU-06).
+    // Sin turnos no se muestran tarjetas con 0 % que parecerían un resultado.
     document.querySelector('#vacio-detalle').textContent =
       `No existen turnos otorgados entre el ${formatoFecha(reporte.periodo.desde)} y el ${formatoFecha(reporte.periodo.hasta)} con los criterios aplicados. Pruebe ampliando el rango de fechas.`;
     filas.replaceChildren();

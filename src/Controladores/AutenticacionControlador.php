@@ -56,7 +56,7 @@ final class AutenticacionControlador
         return [
             'usuario' => $this->usuarioPublico($usuario),
             'panel' => Roles::panel($usuario['rol']),
-            // Única fuente del límite para el navegador (TUR-008, AC-007).
+            // Única fuente del límite para el navegador.
             'inactividadSegundos' => GestorSesion::limiteInactividad(),
         ];
     }

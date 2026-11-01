@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Auxiliar de test_usuarios.py (TUR-005, REV-TUR-005-008 y REV-012): otra transacción da de alta una persona con un DNI
+// Auxiliar de test_usuarios.py: otra transacción da de alta una persona con un DNI
 // y todavía no la confirma. Mientras tanto, un alta por la API con ese mismo DNI debe esperar y responder 409 dni_duplicado.
 // Uso: php tests/api/bloqueo_persona.php <dni> <segundos>
 // Imprime «bloqueado» cuando retiene la fila y «confirmado» al cerrar la transacción.

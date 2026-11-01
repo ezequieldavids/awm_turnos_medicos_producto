@@ -7,8 +7,8 @@ namespace Turnos\Controladores;
 use Turnos\Auth\Autorizacion;
 use Turnos\Auth\Roles;
 
-// Recurso de ejemplo reservado al administrador (AC-004). Sirve para comprobar el control por rol;
-// no es un módulo de administración de usuarios (TUR-005).
+// Recurso de ejemplo reservado al administrador. Sirve para comprobar el control por rol;
+// no es un módulo de administración de usuarios.
 final class AdministracionControlador
 {
     public function resumen(): array

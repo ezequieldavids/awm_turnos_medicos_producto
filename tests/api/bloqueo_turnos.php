@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Auxiliar de test_turnos.py (TUR-007, AC-003): retiene el bloqueo del profesional de una agenda, confirma un turno en la
+// Auxiliar de test_turnos.py: retiene el bloqueo del profesional de una agenda, confirma un turno en la
 // franja pedida y, tras esperar, cierra la transacción. Una reserva enviada por la API durante la espera debe esperar y luego
 // responder 409 (franja ocupada), no 201.
 // Uso: php tests/api/bloqueo_turnos.php <agenda> <paciente> <fecha AAAA-MM-DD> <hora HH:MM> <segundos>

@@ -29,7 +29,7 @@ try {
 } catch (HttpException $error) {
     Respuesta::error($error->estado(), $error->codigo(), $error->getMessage());
 } catch (Throwable $error) {
-    // El detalle interno sólo va al log del servidor (AC-006 y límites del contrato).
+    // El detalle interno sólo va al log del servidor, no a la respuesta HTTP.
     error_log('[turnos] ' . $error::class . ': ' . $error->getMessage());
     Respuesta::error(500, 'error_interno', 'No se pudo completar la operación. Intentá nuevamente más tarde.');
 }

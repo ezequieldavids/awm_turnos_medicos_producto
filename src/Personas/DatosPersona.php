@@ -6,7 +6,7 @@ namespace Turnos\Personas;
 
 use Turnos\Http\HttpException;
 
-// Validación de los datos civiles compartidos por pacientes y profesionales (PRD H.2, PERSONA).
+// Validación de los datos civiles compartidos por pacientes y profesionales.
 final class DatosPersona
 {
     /** @return array{dni: ?string, nombre: string, apellido: string, telefono: ?string, email: ?string, fecha_nacimiento: ?string} */

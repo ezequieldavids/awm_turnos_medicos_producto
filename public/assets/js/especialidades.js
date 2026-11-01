@@ -72,7 +72,7 @@ function abrirFormulario(especialidad = null) {
 
 // Devuelve false si la sesión no sirve (ya se redirigió o se avisó).
 function sesionValida(respuesta) {
-  // Sesión vencida por inactividad (TUR-008, Q-4): la pantalla de inicio muestra el aviso.
+  // Sesión vencida por inactividad: la pantalla de inicio muestra el aviso.
   if (respuesta.estado === 401 && (respuesta.datos?.error?.codigo === 'sesion_expirada' || hayAvisoDeInactividad())) {
     location.replace('/?sesion=inactividad');
     return false;

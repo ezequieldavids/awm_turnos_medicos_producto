@@ -11,7 +11,7 @@ use Turnos\Http\Solicitud;
 use Turnos\Pacientes\PacienteRepositorio;
 use Turnos\Personas\DatosPersona;
 
-// Gestión de pacientes (TUR-003): administrador y recepcionista.
+// Gestión de pacientes: administrador y recepcionista.
 final class PacienteControlador
 {
     private PacienteRepositorio $repositorio;
@@ -37,7 +37,7 @@ final class PacienteControlador
         return ['paciente' => $this->existente($id)];
     }
 
-    // Autoconsulta del paciente (TUR-010, Q-1 y Q-3): sólo lectura; el registro sale de la sesión, sin identificador en la petición.
+    // Autoconsulta del paciente: sólo lectura; el registro sale de la sesión, sin identificador en la petición.
     public function misDatos(): array
     {
         $usuario = Autorizacion::exigirRol(Roles::PACIENTE);

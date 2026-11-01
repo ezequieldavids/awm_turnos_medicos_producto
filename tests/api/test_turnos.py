@@ -1,6 +1,6 @@
-"""Pruebas funcionales de TUR-007: turnos y disponibilidad contra la API real (AC-001 a AC-008).
+"""Pruebas funcionales de turnos y disponibilidad contra la API real.
 
-Requiere el entorno levantado con el esquema de db/schema.sql (secciones TUR-004 y TUR-007). Mismas variables que
+Requiere el entorno levantado con el esquema de db/schema.sql. Mismas variables que
 test_agendas.py. Cada ejecución crea profesionales, consultorios, agendas, pacientes y turnos nuevos; la API no borra
 registros. Para que las pruebas no se crucen entre sí ni con la semilla, cada una usa un año lejano y aleatorio.
 """
@@ -127,7 +127,7 @@ class TurnosBase(unittest.TestCase):
 
 class DisponibilidadTest(TurnosBase):
 
-    # AC-001: franjas libres de la agenda; las ocupadas no aparecen, las canceladas vuelven a estar libres.
+    # Franjas libres de la agenda; las ocupadas no aparecen, las canceladas vuelven a estar libres.
     def test_ac001_excluye_ocupadas_y_reaparece_al_cancelar(self):
         agenda = self.agenda()  # 09:00 a 10:00, de 15 minutos: 4 franjas
         turno = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -139,7 +139,7 @@ class DisponibilidadTest(TurnosBase):
         _, cuerpo = horas_libres(self.paciente, self.clinica, agenda['fecha'], agenda['profesional'])
         self.assertEqual(['09:00', '09:15', '09:30', '09:45'], [f['horaInicio'] for f in cuerpo['franjas']])
 
-    # AC-001: todos los roles autenticados consultan la disponibilidad.
+    # Todos los roles autenticados consultan la disponibilidad.
     def test_ac001_todos_los_roles_leen_y_sin_sesion_401(self):
         agenda = self.agenda()
         for nombre, cliente in (('paciente', self.paciente), ('profesional', self.profesional),
@@ -149,7 +149,7 @@ class DisponibilidadTest(TurnosBase):
         self.assertEqual(401, Cliente().pedir('GET', f"/api/disponibilidad?especialidad={self.clinica}"
                                                    f"&fecha_desde={agenda['fecha']}&fecha_hasta={agenda['fecha']}")[0])
 
-    # AC-001: parámetros y rango inválidos responden 400.
+    # Parámetros y rango inválidos responden 400.
     def test_ac001_parametros_y_rango_invalidos_responden_400(self):
         fecha = '2300-03-01'
         casos = [
@@ -167,7 +167,7 @@ class DisponibilidadTest(TurnosBase):
 
 class ReservaTest(TurnosBase):
 
-    # AC-002: el paciente reserva para sí mismo y aparece en su listado.
+    # El paciente reserva para sí mismo y aparece en su listado.
     def test_ac002_paciente_reserva_para_si_mismo(self):
         agenda = self.agenda()
         estado, cuerpo, _ = self.reservar(self.paciente, agenda, '09:30', motivo='  Control de rutina  ')
@@ -178,7 +178,7 @@ class ReservaTest(TurnosBase):
         _, listado = turnos_de(self.paciente, desde=agenda['fecha'], hasta=agenda['fecha'])
         self.assertIn(cuerpo['turno']['id'], [t['id'] for t in listado['turnos']])
 
-    # AC-002: recepción y administrador reservan para cualquier paciente.
+    # Recepción y administrador reservan para cualquier paciente.
     def test_ac002_recepcion_y_administrador_reservan_para_un_paciente(self):
         agenda = self.agenda()
         paciente = self.paciente_nuevo()
@@ -188,7 +188,7 @@ class ReservaTest(TurnosBase):
                 self.assertEqual(201, estado, cuerpo)
                 self.assertEqual(paciente, cuerpo['turno']['paciente']['id'])
 
-    # AC-002: el paciente no reserva para otro (403) y la recepción debe indicar el paciente (400).
+    # El paciente no reserva para otro (403) y la recepción debe indicar el paciente (400).
     def test_ac002_paciente_no_reserva_para_otro_y_recepcion_exige_paciente(self):
         agenda = self.agenda()
         self.assertEqual(403, self.reservar(self.paciente, agenda, '09:00', paciente=self.paciente_nuevo())[0])
@@ -196,7 +196,7 @@ class ReservaTest(TurnosBase):
         self.assertEqual(400, estado, cuerpo)
         self.assertEqual('datos_invalidos', cuerpo['error']['codigo'])
 
-    # AC-002: franjas que no corresponden a la agenda, fechas pasadas, datos mal formados.
+    # Franjas que no corresponden a la agenda, fechas pasadas, datos mal formados.
     def test_ac002_rechazos_de_franja_fecha_y_datos(self):
         agenda = self.agenda()
         otro_dia = (datetime.date.fromisoformat(agenda['fecha']) + datetime.timedelta(days=1)).isoformat()
@@ -228,7 +228,7 @@ class ReservaTest(TurnosBase):
 
 class SuperposicionTest(TurnosBase):
 
-    # AC-003: otro paciente no puede tomar la misma franja del profesional.
+    # Otro paciente no puede tomar la misma franja del profesional.
     def test_ac003_franja_ocupada_por_el_mismo_profesional(self):
         agenda = self.agenda()
         self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -237,7 +237,7 @@ class SuperposicionTest(TurnosBase):
         _, listado = turnos_de(self.recepcion, profesional=agenda['profesional'], desde=agenda['fecha'], hasta=agenda['fecha'])
         self.assertEqual(1, len(listado['turnos']))
 
-    # AC-003: el mismo paciente no puede tener dos turnos superpuestos con profesionales distintos.
+    # El mismo paciente no puede tener dos turnos superpuestos con profesionales distintos.
     def test_ac003_paciente_no_se_superpone_con_otro_profesional(self):
         paciente = self.paciente_nuevo()
         primera = self.agenda(anio=2400)
@@ -246,28 +246,28 @@ class SuperposicionTest(TurnosBase):
         estado, cuerpo, _ = self.reservar(self.recepcion, otra, '09:00', paciente)
         self.assertEqual((409, 'paciente_superpuesto'), (estado, cuerpo['error']['codigo']))
 
-    # AC-003: franjas que sólo se tocan en el límite se aceptan.
+    # Franjas que sólo se tocan en el límite se aceptan.
     def test_ac003_franjas_contiguas_se_aceptan(self):
         agenda = self.agenda()
         paciente = self.paciente_nuevo()
         self.turno_en(self.recepcion, agenda, '09:00', paciente)
         self.turno_en(self.recepcion, agenda, '09:15', paciente)
 
-    # AC-003: un turno cancelado no ocupa la franja.
+    # Un turno cancelado no ocupa la franja.
     def test_ac003_turno_cancelado_libera_la_franja(self):
         agenda = self.agenda()
         turno = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
         self.recepcion.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'cancelado'})
         self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
 
-    # AC-003: una agenda inactiva no admite turnos.
+    # Una agenda inactiva no admite turnos.
     def test_ac003_agenda_inactiva_rechaza_la_reserva(self):
         agenda = self.agenda()
         self.assertEqual(200, self.admin.pedir('PUT', f"/api/agendas/{agenda['id']}/estado", {'activa': False})[0])
         estado, cuerpo, _ = self.reservar(self.recepcion, agenda, '09:00', self.paciente_nuevo())
         self.assertEqual((409, 'agenda_inactiva'), (estado, cuerpo['error']['codigo']))
 
-    # AC-003: una reserva que llega mientras otra transacción retiene el profesional espera el bloqueo y, al liberarse,
+    # Una reserva que llega mientras otra transacción retiene el profesional espera el bloqueo y, al liberarse,
     # detecta la franja ocupada (409), sin confirmar un turno duplicado.
     def test_ac003_la_reserva_espera_al_bloqueo_y_detecta_la_franja_ocupada(self):
         agenda = self.agenda()
@@ -291,7 +291,7 @@ class SuperposicionTest(TurnosBase):
 
 class CancelacionTest(TurnosBase):
 
-    # AC-004: el paciente cancela su turno; la franja vuelve a estar libre.
+    # El paciente cancela su turno; la franja vuelve a estar libre.
     def test_ac004_paciente_cancela_su_turno(self):
         agenda = self.agenda()
         turno = self.turno_en(self.paciente, agenda, '09:00')
@@ -301,19 +301,19 @@ class CancelacionTest(TurnosBase):
         _, libres = horas_libres(self.paciente, self.clinica, agenda['fecha'], agenda['profesional'])
         self.assertIn('09:00', [f['horaInicio'] for f in libres['franjas']])
 
-    # AC-004: sólo cancela sus propios turnos; cancelar dos veces, o cambiar a otro estado, se rechaza.
+    # Sólo cancela sus propios turnos; cancelar dos veces, o cambiar a otro estado, se rechaza.
     def test_ac004_ajeno_repetido_y_estado_invalido(self):
         agenda = self.agenda()
         turno = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
         self.assertEqual(403, self.paciente.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'cancelado'})[0])
-        # TUR-006: un turno no vuelve a «confirmado» (409); un valor desconocido sigue siendo un dato inválido (400).
+        # Un turno no vuelve a «confirmado» (409); un valor desconocido sigue siendo un dato inválido (400).
         self.assertEqual(409, self.recepcion.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'confirmado'})[0])
         self.assertEqual(400, self.recepcion.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'otro'})[0])
         self.assertEqual(200, self.recepcion.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'cancelado'})[0])
         estado, cuerpo, _ = self.recepcion.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'cancelado'})
         self.assertEqual((409, 'turno_cancelado'), (estado, cuerpo['error']['codigo']))
 
-    # AC-004: un turno ya pasado no se cancela; el profesional no cancela.
+    # Un turno ya pasado no se cancela; el profesional no cancela.
     def test_ac004_turno_pasado_y_profesional_no_cancelan(self):
         pasado = self.seed_turno_pasado()
         estado, cuerpo, _ = self.recepcion.pedir('PUT', f"/api/turnos/{pasado['id']}/estado", {'estado': 'cancelado'})
@@ -329,7 +329,7 @@ class CancelacionTest(TurnosBase):
 
 class BloqueoTest(TurnosBase):
 
-    # REV-TUR-007-003: cancelar espera el bloqueo del profesional (orden paciente → profesional → consultorio → turno)
+    # Cancelar espera el bloqueo del profesional (orden paciente → profesional → consultorio → turno)
     # y luego se confirma, en vez de fallar con 1213 o responder un conflicto falso.
     def test_ac004_cancelar_espera_al_bloqueo_del_profesional_y_confirma(self):
         agenda = self.agenda()
@@ -351,7 +351,7 @@ class BloqueoTest(TurnosBase):
 
 class ReprogramacionTest(TurnosBase):
 
-    # AC-005: cambia de profesional dentro de la misma especialidad; conserva el id y libera la franja anterior.
+    # Cambia de profesional dentro de la misma especialidad; conserva el id y libera la franja anterior.
     def test_ac005_reprograma_a_otro_profesional_de_la_misma_especialidad(self):
         paciente = self.paciente_nuevo()
         origen = self.agenda(anio=2500)
@@ -366,7 +366,7 @@ class ReprogramacionTest(TurnosBase):
         _, libres = horas_libres(self.recepcion, self.clinica, origen['fecha'], origen['profesional'])
         self.assertIn('09:00', [f['horaInicio'] for f in libres['franjas']])
 
-    # AC-005: una franja ocupada rechaza el cambio y el turno no se mueve.
+    # Una franja ocupada rechaza el cambio y el turno no se mueve.
     def test_ac005_franja_ocupada_no_mueve_el_turno(self):
         agenda = self.agenda()
         turno = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -377,7 +377,7 @@ class ReprogramacionTest(TurnosBase):
         _, actual = turnos_de(self.recepcion, profesional=agenda['profesional'], desde=agenda['fecha'], hasta=agenda['fecha'])
         self.assertIn(('09:00', turno['id']), [(t['horaInicio'], t['id']) for t in actual['turnos']])
 
-    # AC-005: sólo misma especialidad; cancelados y pasados no se reprograman; el paciente no mueve turnos ajenos.
+    # Sólo misma especialidad; cancelados y pasados no se reprograman; el paciente no mueve turnos ajenos.
     def test_ac005_especialidad_estado_y_propiedad(self):
         agenda = self.agenda()
         turno = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -395,7 +395,7 @@ class ReprogramacionTest(TurnosBase):
 
 class HistorialTest(TurnosBase):
 
-    # AC-006: el paciente ve sus turnos pasados y futuros, y no los de otros.
+    # El paciente ve sus turnos pasados y futuros, y no los de otros.
     def test_ac006_paciente_ve_solo_sus_turnos(self):
         agenda = self.agenda()
         ajeno = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -407,7 +407,7 @@ class HistorialTest(TurnosBase):
         self.assertEqual(403, self.paciente.pedir('GET', f"/api/turnos/{ajeno['id']}")[0])
         self.assertTrue(all(t['paciente']['id'] == self.paciente_cuenta for t in cuerpo['turnos']))
 
-    # AC-006: recepción lista con filtros por fecha, profesional y estado.
+    # Recepción lista con filtros por fecha, profesional y estado.
     def test_ac006_recepcion_filtra_por_fecha_profesional_y_estado(self):
         agenda = self.agenda()
         confirmado = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -421,7 +421,7 @@ class HistorialTest(TurnosBase):
         self.assertEqual([confirmado['id']], [t['id'] for t in cuerpo['turnos']])
         self.assertEqual(400, turnos_de(self.recepcion, estado='otro')[0])
 
-    # AC-006: el profesional lista los turnos de sus agendas, con los datos del paciente (Q-2); no los ajenos.
+    # El profesional lista los turnos de sus agendas, con los datos del paciente; no los ajenos.
     def test_ac006_profesional_ve_los_turnos_de_sus_agendas(self):
         _, cuerpo = turnos_de(self.profesional, desde='2026-10-05', hasta='2026-10-05')
         self.assertTrue(cuerpo['turnos'])
@@ -431,7 +431,7 @@ class HistorialTest(TurnosBase):
         ajeno = self.turno_en(self.recepcion, self.agenda(), '09:00', self.paciente_nuevo())
         self.assertEqual(403, self.profesional.pedir('GET', f"/api/turnos/{ajeno['id']}")[0])
 
-    # AC-006: filtrar por otro profesional no muestra turnos ajenos al paciente.
+    # Filtrar por otro profesional no muestra turnos ajenos al paciente.
     def test_ac006_filtro_por_otro_profesional_no_muestra_ajenos(self):
         _, cuerpo = turnos_de(self.paciente, profesional=self.profesional_nuevo())
         self.assertEqual([], cuerpo['turnos'])
@@ -439,7 +439,7 @@ class HistorialTest(TurnosBase):
 
 class AccesoTest(TurnosBase):
 
-    # AC-007: sin sesión, toda ruta de turnos responde 401.
+    # Sin sesión, toda ruta de turnos responde 401.
     def test_ac007_sin_sesion_responde_401(self):
         anonimo = Cliente()
         self.assertEqual(401, anonimo.pedir('GET', '/api/turnos')[0])
@@ -448,7 +448,7 @@ class AccesoTest(TurnosBase):
         self.assertEqual(401, anonimo.pedir('PUT', '/api/turnos/1/estado', {'estado': 'cancelado'})[0])
         self.assertEqual(401, anonimo.pedir('PUT', '/api/turnos/1/reprogramacion', {})[0])
 
-    # AC-007: el profesional lee; no reserva, no cancela ni reprograma.
+    # El profesional lee; no reserva, no cancela ni reprograma.
     def test_ac007_profesional_solo_lee(self):
         turno = self.turno_en(self.recepcion, self.agenda(), '09:00', self.paciente_nuevo())
         self.assertEqual(403, self.profesional.pedir('POST', '/api/turnos', cuerpo_reserva(1, '2300-03-01', '09:00'))[0])
@@ -456,7 +456,7 @@ class AccesoTest(TurnosBase):
         self.assertEqual(403, self.profesional.pedir('PUT', f"/api/turnos/{turno['id']}/reprogramacion",
                                                      cuerpo_reserva(1, '2300-03-01', '09:00'))[0])
 
-    # AC-007: el paciente no reserva para otros ni lista turnos de otro paciente por filtro.
+    # El paciente no reserva para otros ni lista turnos de otro paciente por filtro.
     def test_ac007_paciente_no_reserva_para_otro_ni_lista_ajeno(self):
         self.assertEqual(403, self.paciente.pedir('POST', '/api/turnos',
                                                   cuerpo_reserva(1, '2300-03-01', '09:00', paciente=self.paciente_nuevo()))[0])
@@ -465,7 +465,7 @@ class AccesoTest(TurnosBase):
 
 class DesactivacionTest(TurnosBase):
 
-    # REV-TUR-007-008 (decisión del usuario): desactivar un paciente con turnos futuros responde 409 y no cambia nada;
+    # Decisión del usuario: desactivar un paciente con turnos futuros responde 409 y no cambia nada;
     # tras cancelar sus turnos, la desactivación se acepta.
     def test_ac008_desactivar_paciente_con_turno_futuro_responde_turnos_futuros(self):
         paciente = self.paciente_nuevo()
@@ -476,7 +476,7 @@ class DesactivacionTest(TurnosBase):
         self.recepcion.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'cancelado'})
         self.assertEqual(200, self.recepcion.pedir('PUT', f'/api/pacientes/{paciente}/estado', {'activo': False})[0])
 
-    # AC-008 (Q-1): una agenda con turnos futuros no se desactiva; tras cancelarlos, sí.
+    # Una agenda con turnos futuros no se desactiva; tras cancelarlos, sí.
     def test_ac008_agenda_con_turno_futuro_no_se_desactiva(self):
         agenda = self.agenda()
         turno = self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -486,7 +486,7 @@ class DesactivacionTest(TurnosBase):
         self.recepcion.pedir('PUT', f"/api/turnos/{turno['id']}/estado", {'estado': 'cancelado'})
         self.assertEqual(200, self.admin.pedir('PUT', f"/api/agendas/{agenda['id']}/estado", {'activa': False})[0])
 
-    # AC-008 (Q-1): desactivar un profesional con turnos futuros responde 409 y no cambia sus agendas.
+    # Desactivar un profesional con turnos futuros responde 409 y no cambia sus agendas.
     def test_ac008_desactivar_profesional_con_turno_futuro_no_cambia_nada(self):
         agenda = self.agenda()
         self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -495,7 +495,7 @@ class DesactivacionTest(TurnosBase):
         self.assertEqual(['1'], consultar(f"SELECT activo FROM profesional WHERE id_profesional = {agenda['profesional']}"))
         self.assertEqual(['1'], consultar(f"SELECT activa FROM agenda WHERE id_agenda = {agenda['id']}"))
 
-    # AC-008 (Q-1): desactivar una especialidad con turnos futuros responde 409 y no cambia nada.
+    # Desactivar una especialidad con turnos futuros responde 409 y no cambia nada.
     def test_ac008_desactivar_especialidad_con_turno_futuro_no_cambia_nada(self):
         _, creada, _ = self.admin.pedir('POST', '/api/especialidades', {'nombre': nombre_unico()})
         especialidad = creada['especialidad']['id']
@@ -506,7 +506,7 @@ class DesactivacionTest(TurnosBase):
         self.assertEqual(['1'], consultar(f'SELECT activa FROM especialidad WHERE id_especialidad = {especialidad}'))
         self.assertEqual(['1'], consultar(f"SELECT activa FROM agenda WHERE id_agenda = {agenda['id']}"))
 
-    # AC-008 (Q-1): quitar una especialidad a un profesional con turnos futuros en esa especialidad responde 409.
+    # Quitar una especialidad a un profesional con turnos futuros en esa especialidad responde 409.
     def test_ac008_quitar_especialidad_con_turno_futuro_responde_409(self):
         datos = {
             'dni': dni_unico(), 'nombre': 'Quitar', 'apellido': 'Especialidad', 'telefono': None, 'email': None,
@@ -526,7 +526,7 @@ class DesactivacionTest(TurnosBase):
 
 class ConsultorioTest(TurnosBase):
 
-    # AC-008 (Q-1) y REV-TUR-007-006: desactivar el consultorio de un turno futuro responde 409 turnos_futuros y no cambia nada.
+    # Desactivar el consultorio de un turno futuro responde 409 turnos_futuros y no cambia nada.
     def test_ac008_consultorio_con_turno_futuro_responde_turnos_futuros(self):
         agenda = self.agenda()
         self.turno_en(self.recepcion, agenda, '09:00', self.paciente_nuevo())
@@ -534,7 +534,7 @@ class ConsultorioTest(TurnosBase):
         self.assertEqual((409, 'turnos_futuros'), (estado, cuerpo['error']['codigo']))
         self.assertEqual(['1'], consultar(f"SELECT activo FROM consultorio WHERE id_consultorio = {agenda['consultorio']}"))
 
-    # AC-008: un consultorio con agendas activas, sin turnos, sigue respondiendo consultorio_con_agendas.
+    # Un consultorio con agendas activas, sin turnos, sigue respondiendo consultorio_con_agendas.
     def test_ac008_consultorio_con_agenda_sin_turnos_mantiene_su_codigo(self):
         agenda = self.agenda()
         estado, cuerpo, _ = self.admin.pedir('PUT', f"/api/consultorios/{agenda['consultorio']}/estado", {'activo': False})
@@ -543,7 +543,7 @@ class ConsultorioTest(TurnosBase):
 
 class EdicionAgendaTest(TurnosBase):
 
-    # REV-TUR-007-001 (decisión del usuario): editar una agenda con turnos confirmados a futuro responde 409 turnos_futuros
+    # Decisión del usuario: editar una agenda con turnos confirmados a futuro responde 409 turnos_futuros
     # y no cambia nada. Sin turnos, la edición sigue funcionando.
     def test_ac008_editar_agenda_con_turno_futuro_responde_turnos_futuros(self):
         agenda = self.agenda()
@@ -578,7 +578,7 @@ def estado_de(turno):
 
 
 class AsistenciaTest(TurnosBase):
-    """TUR-006 AC-001: registro de asistencia (atendido / ausente) sobre turnos que ya comenzaron."""
+    """Registro de asistencia (atendido / ausente) sobre turnos que ya comenzaron."""
 
     PASADO = '2025-03-10'
 
@@ -636,7 +636,7 @@ class AsistenciaTest(TurnosBase):
             self.assertEqual((409, 'turno_cerrado'), (estado, cuerpo['error']['codigo']))
         self.assertEqual('atendido', estado_de(cerrado))
 
-    # REV-TUR-006-001: un turno atendido o ausente sigue ocupando su horario; sólo el cancelado lo libera.
+    # Un turno atendido o ausente sigue ocupando su horario; sólo el cancelado lo libera.
     def test_ac003_turno_cerrado_sigue_ocupando_la_franja(self):
         agenda = self.agenda()
         paciente = self.paciente_nuevo()

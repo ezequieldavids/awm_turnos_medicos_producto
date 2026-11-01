@@ -6,7 +6,7 @@ namespace Turnos\Auth;
 
 use Turnos\Config;
 
-// Sesión de PHP con cookie Secure, HttpOnly y SameSite (DEC-005, RNF-01).
+// Sesión de PHP con cookie Secure, HttpOnly y SameSite.
 final class GestorSesion
 {
     public static function iniciar(): void
@@ -37,8 +37,8 @@ final class GestorSesion
         self::quitarAvisoDeInactividad();
     }
 
-    // Límite de inactividad en segundos (TUR-008, Q-1): 900 por defecto, configurable con SESION_INACTIVIDAD_SEGUNDOS.
-    // Un valor no positivo o no numérico usa el por defecto, para no cerrar todas las sesiones de inmediato (REV-TUR-008-004).
+    // Límite de inactividad en segundos: 900 por defecto, configurable con SESION_INACTIVIDAD_SEGUNDOS.
+    // Un valor no positivo o no numérico usa el por defecto, para no cerrar todas las sesiones de inmediato.
     public static function limiteInactividad(): int
     {
         $segundos = (int) Config::get('SESION_INACTIVIDAD_SEGUNDOS', '900');
@@ -46,14 +46,14 @@ final class GestorSesion
         return $segundos > 0 ? $segundos : 900;
     }
 
-    // Marca de última actividad (TUR-008): cada petición autenticada la renueva.
+    // Marca de última actividad: cada petición autenticada la renueva.
     public static function registrarActividad(): void
     {
         $_SESSION['ultimaActividad'] = time();
     }
 
     // Marca de corta duración (60 s) que acompaña al cierre por inactividad: sin ella, volver con «atrás» daría
-    // no_autenticado y la pantalla de inicio no mostraría el aviso (TUR-008, Q-4). No contiene datos de la sesión.
+    // no_autenticado y la pantalla de inicio no mostraría el aviso. No contiene datos de la sesión.
     public static function avisarInactividad(): void
     {
         self::marcaDeAviso(time() + 60);
@@ -80,7 +80,7 @@ final class GestorSesion
     }
 
     // Verdadero si llegó al límite sin peticiones: igual que el temporizador del navegador, para que ambos venzan a la vez.
-    // Una sesión sin marca (abierta antes de TUR-008) se considera vigente.
+    // Una sesión sin marca (abierta antes de que existiera este control) se considera vigente.
     public static function vencida(): bool
     {
         $ultima = $_SESSION['ultimaActividad'] ?? null;
@@ -88,7 +88,7 @@ final class GestorSesion
         return $ultima !== null && time() - (int) $ultima >= self::limiteInactividad();
     }
 
-    // Huella del hash de contraseña con que se abrió la sesión (TUR-005, REV-009): cambiar la contraseña la invalida.
+    // Huella del hash de contraseña con que se abrió la sesión: cambiar la contraseña la invalida.
     public static function huella(): ?string
     {
         return $_SESSION['huella'] ?? null;
@@ -99,7 +99,7 @@ final class GestorSesion
         return hash('sha256', $passwordHash);
     }
 
-    // Copia a la sesión los datos vigentes de la cuenta (TUR-005, Q-5).
+    // Copia a la sesión los datos vigentes de la cuenta.
     public static function actualizar(array $usuario): array
     {
         $_SESSION['usuario'] = [

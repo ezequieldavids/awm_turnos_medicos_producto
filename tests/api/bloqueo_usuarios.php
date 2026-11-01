@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Auxiliar de test_usuarios.py (TUR-005, REV-TUR-005-001): hace como otro administrador que desactiva una cuenta.
+// Auxiliar de test_usuarios.py: hace como otro administrador que desactiva una cuenta.
 // Toma el mismo bloqueo que CuentaRepositorio (todos los administradores activos, en orden), desactiva la cuenta indicada,
 // espera y confirma. Mientras tanto, la petición de la API que desactiva a otro administrador debe esperar y responder 409.
 // Uso: php tests/api/bloqueo_usuarios.php <id_usuario> <segundos>

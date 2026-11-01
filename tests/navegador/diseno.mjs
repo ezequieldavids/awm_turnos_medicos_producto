@@ -1,8 +1,8 @@
-// Recorridos de TUR-009 (rediseño visual) en un navegador real: AC-001 a AC-003 y AC-005 a AC-008, AC-010.
-// AC-004 (paneles) y AC-005 (secuencia del diálogo) se ejercen también en recorrido.mjs; AC-009 es la reprueba completa.
+// Recorridos (rediseño visual) en un navegador real.
+// Los paneles y la secuencia del diálogo se ejercen también en recorrido.mjs; hay además una reprueba completa.
 //
 // Requiere la aplicación levantada con la semilla de db/schema.sql y Chrome instalado.
-// Variables opcionales: APP_URL (por defecto http://127.0.0.1:8080), CHROME_PATH, ARTEFACTOS_DIR (por defecto specs/TUR-009/artifacts).
+// Variables opcionales: APP_URL (por defecto http://127.0.0.1:8080), CHROME_PATH, ARTEFACTOS_DIR.
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:diseno
 // Termina con código 1 si alguna comprobación falla. Guarda capturas y diseno-resultados.json en ARTEFACTOS_DIR.
 
@@ -88,7 +88,7 @@ async function main() {
   const navegador = await chromium.launch({ executablePath: CHROME, headless: true });
 
   try {
-    // AC-002: login con la referencia, botón deshabilitado mientras envía y mensajes de error con el aspecto nuevo.
+    // Login con la referencia, botón deshabilitado mientras envía y mensajes de error con el aspecto nuevo.
     for (const [etiqueta, viewport] of Object.entries(VIEWPORTS)) {
       await comprobar('AC-002', `login con los elementos de la referencia (${etiqueta})`, async () => {
         const contexto = await navegador.newContext({ viewport });
@@ -126,7 +126,7 @@ async function main() {
       await contexto.close();
     });
 
-    // AC-001, AC-003, AC-008: cada pantalla autenticada de cada rol, en ambos viewports.
+    // Cada pantalla autenticada de cada rol, en ambos viewports.
     for (const [rol, cuenta] of Object.entries(CUENTAS)) {
       for (const [etiqueta, viewport] of Object.entries(VIEWPORTS)) {
         await comprobar('AC-001/003/008', `${rol}: ${cuenta.paginas.length} pantallas con estilo común, barra y sin desborde (${etiqueta})`, async () => {
@@ -175,7 +175,7 @@ async function main() {
       }
     }
 
-    // AC-005: el diálogo en móvil y escritorio (la secuencia completa está en recorrido.mjs).
+    // El diálogo en móvil y escritorio (la secuencia completa está en recorrido.mjs).
     for (const [etiqueta, viewport] of Object.entries(VIEWPORTS)) {
       await comprobar('AC-005', `diálogo de cierre de sesión visible y dentro de pantalla (${etiqueta})`, async () => {
         const { contexto, pagina } = await ingresar(navegador, CUENTAS.administrador, viewport);
@@ -192,7 +192,7 @@ async function main() {
       });
     }
 
-    // AC-006: listados con filtros en tarjeta, «Estado» desplegable y «Contacto / Email».
+    // Listados con filtros en tarjeta, «Estado» desplegable y «Contacto / Email».
     for (const [etiqueta, viewport] of Object.entries(VIEWPORTS)) {
       await comprobar('AC-006', `listados del administrador: filtros, estado y contacto (${etiqueta})`, async () => {
         const { contexto, pagina } = await ingresar(navegador, CUENTAS.administrador, viewport);
@@ -230,7 +230,7 @@ async function main() {
       });
     }
 
-    // AC-007: modal con error de validación y estado vacío con el estilo común.
+    // Modal con error de validación y estado vacío con el estilo común.
     for (const [etiqueta, viewport] of Object.entries(VIEWPORTS)) {
       await comprobar('AC-007', `modal con error de validación y estado vacío (${etiqueta})`, async () => {
         const { contexto, pagina } = await ingresar(navegador, CUENTAS.administrador, viewport);
@@ -254,7 +254,7 @@ async function main() {
       });
     }
 
-    // AC-008: contraste AA de los pares de color de la paleta, calculado sobre los estilos reales.
+    // Contraste AA de los pares de color de la paleta, calculado sobre los estilos reales.
     await comprobar('AC-008', 'contraste AA (≥ 4,5:1) de la barra, botones, insignias y enlaces', async () => {
       const { contexto, pagina } = await ingresar(navegador, CUENTAS.administrador, VIEWPORTS['desktop-1280x800']);
       await pagina.goto(`${APP}/profesionales.html`);
@@ -304,7 +304,7 @@ async function main() {
       return `${pares.length} pares; mínimo ${Math.min(...informe.contrastes.map((c) => c.ratio))}:1`;
     });
 
-    // AC-008: teclado con foco visible, en el login y en un listado.
+    // Teclado con foco visible, en el login y en un listado.
     await comprobar('AC-008', 'recorrido por teclado con foco visible (login y listado)', async () => {
       const contexto = await navegador.newContext({ viewport: VIEWPORTS['desktop-1280x800'] });
       const pagina = await contexto.newPage();
@@ -341,7 +341,7 @@ async function main() {
       return `login: ${visitados.map((v) => v.id)}; listado: ${recorridos.map((r) => r.id || r.etiqueta).join(' → ')}`;
     });
 
-    // AC-010: sin proveedores nuevos; la fuente sale del propio servidor y hay respaldo si falta.
+    // Sin proveedores nuevos; la fuente sale del propio servidor y hay respaldo si falta.
     await comprobar('AC-010', 'login y panel sólo piden recursos al servidor propio y a jsDelivr; la fuente es propia', async () => {
       const contexto = await navegador.newContext({ viewport: VIEWPORTS['desktop-1280x800'] });
       const pagina = await contexto.newPage();

@@ -10,7 +10,7 @@ use Turnos\Database;
 use Turnos\Http\HttpException;
 use Turnos\Reservas\TurnoRepositorio;
 
-// Consultorios (PRD H.2, RF-05). La baja es lógica (`activo`).
+// Consultorios. La baja es lógica (`activo`).
 final class ConsultorioRepositorio
 {
     private const SELECT = 'SELECT id_consultorio, numero, piso, ubicacion, activo FROM consultorio';
@@ -62,7 +62,7 @@ final class ConsultorioRepositorio
     }
 
     // Un consultorio con agendas activas no se desactiva: primero hay que desactivar o reasignar esas agendas.
-    // La comprobación y el cambio van en una transacción que bloquea la fila, como el alta de agendas (TUR-004, AC-003).
+    // La comprobación y el cambio van en una transacción que bloquea la fila, como el alta de agendas.
     public function cambiarEstado(int $id, bool $activo): void
     {
         $conexion = Database::conexion();
@@ -70,7 +70,7 @@ final class ConsultorioRepositorio
         try {
             $conexion->prepare('SELECT id_consultorio FROM consultorio WHERE id_consultorio = :id FOR UPDATE')->execute(['id' => $id]);
             if (!$activo) {
-                // TUR-007 (Q-1): primero los turnos confirmados futuros, con su propio código de error.
+                // Primero los turnos confirmados futuros, con su propio código de error.
                 TurnoRepositorio::exigirSinTurnosFuturos('a.id_consultorio = :id', ['id' => $id]);
                 $consulta = $conexion->prepare('SELECT COUNT(*) FROM agenda WHERE id_consultorio = :id AND activa = 1');
                 $consulta->execute(['id' => $id]);

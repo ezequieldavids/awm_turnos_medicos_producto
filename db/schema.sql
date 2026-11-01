@@ -1,4 +1,4 @@
--- Esquema de TUR-001 (personas y usuarios) y TUR-002 (especialidades): DEC-002, DEC-005, DEC-006.
+-- Esquema de personas, usuarios y especialidades.
 -- Se ejecuta una vez sobre una base vacía (contenedor nuevo o `mysql turnos < db/schema.sql`).
 -- Los usuarios semilla son sólo para el entorno local de prueba: sus contraseñas no son reales
 -- y en la base se guardan únicamente hashes bcrypt.
@@ -30,7 +30,7 @@ CREATE TABLE usuario (
   CONSTRAINT fk_usuario_persona FOREIGN KEY (id_persona) REFERENCES persona (id_persona)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Datos semilla: un usuario por rol y una cuenta inactiva para la comprobación de AC-002.
+-- Datos semilla: un usuario por rol y una cuenta inactiva para comprobar el bloqueo de usuarios inactivos.
 -- Contraseñas de prueba locales (ver README.md): Password123!.
 INSERT INTO persona (dni, nombre, apellido) VALUES
   ('20000001', 'Admin', 'Prueba'),
@@ -46,7 +46,7 @@ INSERT INTO usuario (id_persona, password_hash, rol, estado) VALUES
   (4, '$2y$12$8rCSfkcuynSRoguzgnU7SOtwqjhDWMnuC2Sn7LJr8WdInwpnyxSza', 'paciente', 'activo'),
   (5, '$2y$12$8rCSfkcuynSRoguzgnU7SOtwqjhDWMnuC2Sn7LJr8WdInwpnyxSza', 'paciente', 'inactivo');
 
--- TUR-002: catálogo de especialidades (PRD H.2). La baja es lógica (`activa`): no se borran filas referenciadas por el historial.
+-- Catálogo de especialidades. La baja es lógica (`activa`): no se borran filas referenciadas por el historial.
 -- La unicidad del nombre usa la colación del esquema (sin distinguir mayúsculas ni acentos).
 CREATE TABLE especialidad (
   id_especialidad INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -101,7 +101,7 @@ INSERT INTO especialidad (nombre, descripcion) VALUES
   ('Traumatología de Columna', 'Patologías degenerativas y quirúrgicas raquídeas'),
   ('Urología', 'Aparato urinario y salud reproductiva masculina');
 
--- TUR-003: pacientes y profesionales (PRD H.2). Cada rol referencia a `persona` (DNI y datos civiles) y la baja es lógica (`activo`).
+-- Pacientes y profesionales. Cada rol referencia a `persona` (DNI y datos civiles) y la baja es lógica (`activo`).
 CREATE TABLE paciente (
   id_paciente INT UNSIGNED NOT NULL AUTO_INCREMENT,
   id_persona INT UNSIGNED NOT NULL,
@@ -154,7 +154,7 @@ INSERT INTO profesional_especialidad (id_profesional, id_especialidad)
      OR (p.matricula = 'MP-10002' AND e.nombre IN ('Cardiología', 'Clínica Médica'))
      OR (p.matricula = 'MP-10003' AND e.nombre IN ('Dermatología'));
 
--- TUR-004: consultorios y agendas médicas (PRD H.2, CU-05). La baja es lógica (`activo` / `activa`).
+-- Consultorios y agendas médicas. La baja es lógica (`activo` / `activa`).
 -- La agenda es recurrente semanal (dia_semana: 1 = lunes … 7 = domingo) y tiene vigencia por fechas (vigente_hasta NULL = sin fin).
 CREATE TABLE consultorio (
   id_consultorio INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -190,7 +190,7 @@ CREATE TABLE agenda (
   CONSTRAINT ck_agenda_vigencia CHECK (vigente_hasta IS NULL OR vigente_desde <= vigente_hasta)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Semilla de prueba (datos ficticios). El consultorio 299 está inactivo para comprobar AC-004.
+-- Semilla de prueba (datos ficticios). El consultorio 299 está inactivo para comprobar el bloqueo de consultorios inactivos.
 INSERT INTO consultorio (numero, piso, ubicacion, activo) VALUES
   ('101', 'Planta baja', 'Ala este', 1),
   ('102', 'Planta baja', NULL, 1),
@@ -212,7 +212,7 @@ INSERT INTO agenda (id_profesional, id_consultorio, id_especialidad, dia_semana,
   FROM profesional p, consultorio c, especialidad e
   WHERE p.matricula = 'MP-10002' AND c.numero = '201' AND e.nombre = 'Clínica Médica';
 
--- TUR-007: turnos médicos (PRD H.2 TURNO, RF-08 a RF-10). Un turno ocupa una franja de una agenda; cancelarlo cambia `estado`
+-- Turnos médicos. Un turno ocupa una franja de una agenda; cancelarlo cambia `estado`
 -- y no borra la fila (baja lógica). La superposición se valida en la aplicación dentro de una transacción con filas bloqueadas.
 CREATE TABLE turno (
   id_turno INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -246,7 +246,7 @@ INSERT INTO turno (id_paciente, id_agenda, fecha, hora_inicio, hora_fin, estado,
        agenda a JOIN profesional pr ON pr.id_profesional = a.id_profesional
   WHERE pe.dni = '30000002' AND pr.matricula = 'MP-10001' AND a.dia_semana = 1 AND a.hora_inicio = '08:00:00';
 
--- TUR-006: asistencia de los turnos (PRD A.5: el profesional registra atendido / ausente) para los reportes de ausentismo.
+-- Asistencia de los turnos: el profesional registra atendido / ausente, para los reportes de ausentismo.
 -- Sólo amplía el ENUM de `turno.estado`: las filas existentes conservan su estado. La semilla agrega turnos pasados ficticios.
 ALTER TABLE turno MODIFY estado ENUM('confirmado', 'atendido', 'ausente', 'cancelado') NOT NULL DEFAULT 'confirmado';
 

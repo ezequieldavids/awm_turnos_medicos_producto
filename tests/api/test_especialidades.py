@@ -1,7 +1,7 @@
-"""Pruebas funcionales de TUR-002 contra la API real (T-002, AC-001 a AC-005).
+"""Pruebas funcionales de especialidades contra la API real.
 
 Requiere el entorno levantado con el esquema de db/schema.sql. Mismas variables que test_autenticacion.py
-(API_URL y, para la consulta directa de AC-004, DB_HOST, DB_PORT, DB_NAME, DB_USUARIO, DB_PASSWORD).
+(API_URL y, para la consulta directa de la baja lógica, DB_HOST, DB_PORT, DB_NAME, DB_USUARIO, DB_PASSWORD).
 Cada ejecución crea especialidades con un nombre único y las deja inactivas: la API no permite borrarlas.
 
 Ejecutar desde la raíz del proyecto:
@@ -44,7 +44,6 @@ class EspecialidadesTest(unittest.TestCase):
         self.assertEqual(200, estado)
         return {e['id'] for e in cuerpo['especialidades']}
 
-    # AC-001
     def test_ac001_crear_responde_201_y_aparece_en_el_listado(self):
         creada = self.crear(descripcion='Con acentos: niño, ñandú')
         self.assertTrue(creada['activa'])
@@ -65,7 +64,6 @@ class EspecialidadesTest(unittest.TestCase):
         self.assertTrue({'Cardiología', 'Ginecología y Obstetricia', 'Urología'} <= nombres)
         self.assertGreaterEqual(len(nombres), 41)
 
-    # AC-002
     def test_ac002_nombre_vacio_o_ausente_o_no_texto_responde_400(self):
         for cuerpo_enviado in ({'nombre': ''}, {'nombre': '   '}, {'nombre': '\u00a0\u00a0'}, {'nombre': '\u2003'}, {}, {'nombre': 5}):
             with self.subTest(cuerpo=cuerpo_enviado):
@@ -100,7 +98,6 @@ class EspecialidadesTest(unittest.TestCase):
         estado, _, _ = self.admin.pedir('POST', '/api/especialidades', None)
         self.assertEqual(400, estado)
 
-    # AC-003
     def test_ac003_modificar_actualiza_nombre_y_descripcion(self):
         creada = self.crear()
         nuevo = nombre_unico('Nuevo')
@@ -126,7 +123,6 @@ class EspecialidadesTest(unittest.TestCase):
                 estado, _, _ = self.admin.pedir(metodo, ruta, cuerpo)
                 self.assertEqual(404, estado)
 
-    # AC-004
     def test_ac004_baja_logica_y_reactivacion(self):
         creada = self.crear()
         ruta = f"/api/especialidades/{creada['id']}/estado"
@@ -167,7 +163,6 @@ class EspecialidadesTest(unittest.TestCase):
     def consultar(self, sql):
         return test_autenticacion.ContrasenasTest.consultar(self, sql)
 
-    # AC-005
     def test_ac005_sin_sesion_toda_ruta_responde_401(self):
         anonimo = Cliente()
         for metodo, ruta, cuerpo in (

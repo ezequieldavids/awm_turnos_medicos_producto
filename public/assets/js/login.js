@@ -9,13 +9,13 @@ function mostrarError(mensaje) {
   alerta.classList.remove('d-none');
 }
 
-// Aviso de TUR-008 (Q-4): la sesión se cerró por inactividad.
+// Aviso de que la sesión se cerró por inactividad.
 if (new URLSearchParams(location.search).get('sesion') === 'inactividad') {
   mostrarError('Tu sesión se cerró por inactividad. Volvé a iniciar sesión.');
 }
 
 // Si ya hay una sesión vigente, se va directo al panel del rol. Con el aviso de inactividad no se redirige:
-// otra pestaña puede mantener viva la sesión, y esta pantalla debe mostrar el aviso (TUR-008, Q-4).
+// otra pestaña puede mantener viva la sesión, y esta pantalla debe mostrar el aviso.
 const llegaPorInactividad = new URLSearchParams(location.search).get('sesion') === 'inactividad';
 pedir('/api/sesion')
   .then((respuesta) => {

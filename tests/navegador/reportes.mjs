@@ -1,7 +1,7 @@
-// Recorridos de TUR-006 en un navegador real: reporte e indicadores, exportación CSV y registro de asistencia (AC-001 a AC-006).
+// Recorridos en un navegador real: reporte e indicadores, exportación CSV y registro de asistencia.
 //
-// Requiere la aplicación levantada con la base de db/schema.sql (secciones TUR-004, TUR-007 y TUR-006) y Chrome instalado.
-// Variables: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome), ARTEFACTOS_DIR (specs/TUR-006/artifacts) y,
+// Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
+// Variables: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome), ARTEFACTOS_DIR y,
 // para insertar turnos pasados con estados conocidos (la API no reserva en el pasado), DB_CONTENEDOR (contenedor MySQL de
 // Docker Compose; sin él, usa el cliente `mysql` local con DB_HOST, DB_PORT, DB_USUARIO y DB_NAME) y DB_PASSWORD.
 //
@@ -190,7 +190,7 @@ async function main() {
       .forEach(([hora, estado]) => turnoDirecto(datos.agenda, paciente, '2021-03-10', hora, estado));
     turnoDirecto(datos.agenda, paciente, '2021-03-17', '09:00', 'confirmado');
 
-    // AC-004 y AC-005: acceso desde el panel.
+    // Acceso desde el panel.
     await comprobar('AC-004', 'el panel del administrador ofrece «Reportes» y el de recepción no', async () => {
       await paginaAdmin.goto(`${APP}/administrador.html`);
       await paginaAdmin.waitForSelector('#contenido:not(.d-none)');
@@ -332,7 +332,7 @@ async function main() {
       await captura(paginaAdmin, 'AC-006-exportar-desktop.png');
     });
 
-    // AC-001: el profesional registra la asistencia en la interfaz.
+    // El profesional registra la asistencia en la interfaz.
     const propia = await profesionalConAgenda('Cuenta', (await api(paginaAdmin, 'GET', '/api/profesionales?estado=todos')).datos.profesionales.find((p) => p.matricula === 'MP-10001').id);
     const apellidoAsistencia = `Asiste${sufijo}`;
     const pacienteAsistencia = await pacienteNuevo(apellidoAsistencia);

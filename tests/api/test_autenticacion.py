@@ -1,4 +1,4 @@
-"""Pruebas funcionales de TUR-001 contra la API real (T-002, AC-001 a AC-006).
+"""Pruebas funcionales de autenticación contra la API real.
 
 Requiere el entorno levantado con el esquema de db/schema.sql. Variables opcionales:
   API_URL      (por defecto http://127.0.0.1:8080)
@@ -62,7 +62,7 @@ class Cliente:
                 else:
                     self.cookie = None
 
-        self.texto = texto  # cuerpo sin interpretar, para respuestas que no son JSON (CSV de TUR-006)
+        self.texto = texto  # cuerpo sin interpretar, para respuestas que no son JSON (CSV del reporte de turnos)
         try:
             json_respuesta = json.loads(texto) if texto else None
         except json.JSONDecodeError:
@@ -79,7 +79,7 @@ class AutenticacionTest(unittest.TestCase):
     def setUp(self):
         self.cliente = Cliente()
 
-    # AC-001: login correcto y redirección al panel del rol.
+    # Login correcto y redirección al panel del rol.
     def test_ac001_login_administrador_establece_sesion_y_panel(self):
         estado, cuerpo, _ = self.cliente.login(*ADMIN)
 
@@ -113,7 +113,7 @@ class AutenticacionTest(unittest.TestCase):
                 self.assertEqual(rol, cuerpo['usuario']['rol'])
                 self.assertEqual(panel, cuerpo['panel'])
 
-    # AC-002: credenciales incorrectas o cuenta inactiva; mensaje genérico y sin sesión.
+    # Credenciales incorrectas o cuenta inactiva; mensaje genérico y sin sesión.
     def test_ac002_fallos_de_login_son_genericos_y_no_abren_sesion(self):
         casos = {
             'contraseña errónea': (ADMIN[0], 'otra-contrasena'),
@@ -131,7 +131,7 @@ class AutenticacionTest(unittest.TestCase):
                 estado, _, _ = cliente.pedir('GET', '/api/sesion')
                 self.assertEqual(401, estado)
 
-    # Errores de entrada (T-002): 400 con JSON de error.
+    # Errores de entrada: 400 con JSON de error.
     def test_entradas_vacias_o_mal_formadas_devuelven_400(self):
         casos = {
             'sin contraseña': {'dni': ADMIN[0]},
@@ -158,7 +158,7 @@ class AutenticacionTest(unittest.TestCase):
         cuerpo = json.loads(contexto.exception.read())
         self.assertEqual('json_invalido', cuerpo['error']['codigo'])
 
-    # AC-003: sin sesión, los recursos protegidos responden 401.
+    # Sin sesión, los recursos protegidos responden 401.
     def test_ac003_sin_sesion_recursos_protegidos_devuelven_401(self):
         for ruta in ['/api/sesion', '/api/panel', '/api/administracion/resumen']:
             with self.subTest(ruta=ruta):
@@ -166,7 +166,7 @@ class AutenticacionTest(unittest.TestCase):
                 self.assertEqual(401, estado)
                 self.assertEqual('no_autenticado', cuerpo['error']['codigo'])
 
-    # AC-004: rol sin permiso recibe 403 y el panel sólo muestra sus opciones.
+    # Rol sin permiso recibe 403 y el panel sólo muestra sus opciones.
     def test_ac004_rol_sin_permiso_recibe_403(self):
         cliente_paciente = Cliente()
         cliente_paciente.login(*PACIENTE)
@@ -194,7 +194,7 @@ class AutenticacionTest(unittest.TestCase):
         self.assertIn('Usuarios', nombres_admin)
         self.assertNotEqual(nombres_paciente, nombres_admin)
 
-    # AC-005: al cerrar sesión la sesión queda invalidada en el servidor.
+    # Al cerrar sesión la sesión queda invalidada en el servidor.
     def test_ac005_logout_invalida_la_sesion_anterior(self):
         self.cliente.login(*ADMIN)
         cookie_anterior = self.cliente.cookie
@@ -243,11 +243,11 @@ class AutenticacionTest(unittest.TestCase):
             self.assertNotIn(marca, cuerpo)
 
     def test_cookie_de_sesion_tiene_secure_httponly_y_samesite(self):
-        # H-04: DEC-005 exige estos atributos; la prueba antes no los inspeccionaba.
+        # H-04: la decisión de arquitectura exige estos atributos; la prueba antes no los inspeccionaba.
         _, _, encabezados = self.cliente.login(*ADMIN)
         cookies = [valor.lower() for valor in encabezados.get_all('Set-Cookie') or [] if 'turnos_sesion=' in valor]
         self.assertEqual(1, len(cookies))
-        # Secure depende de SESSION_SECURE del entorno: 0 es la excepción documentada para HTTP local (DEC-005).
+        # Secure depende de SESSION_SECURE del entorno: 0 es la excepción documentada para HTTP local.
         if os.environ.get('SESSION_SECURE_ESPERADA', '1') == '1':
             self.assertIn('secure', cookies[0])
         else:
@@ -277,7 +277,7 @@ class AutenticacionTest(unittest.TestCase):
 
 
 class ContrasenasTest(unittest.TestCase):
-    """AC-006: las contraseñas se guardan como hash bcrypt; sin texto plano en la base."""
+    """Las contraseñas se guardan como hash bcrypt; sin texto plano en la base."""
 
     def consultar(self, sql):
         entorno = dict(os.environ)

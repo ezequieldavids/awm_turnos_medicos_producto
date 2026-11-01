@@ -11,7 +11,7 @@ function mostrarError(mensaje) {
   alerta.classList.remove('d-none');
 }
 
-// Título, descripción y botón de cada módulo (TUR-009). Los roles con vistas propias («Mi agenda», «Mis turnos») usan su nombre.
+// Título, descripción y botón de cada módulo. Los roles con vistas propias («Mi agenda», «Mis turnos») usan su nombre.
 const MODULOS = {
   '/usuarios.html': ['Usuarios y Roles', 'Alta de cuentas, asignación de roles y control de acceso al sistema.'],
   '/especialidades.html': ['Especialidades Médicas', 'Catálogo centralizado de especialidades de atención médica.'],

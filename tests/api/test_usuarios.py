@@ -1,8 +1,8 @@
-"""Pruebas funcionales de TUR-005: administración de usuarios contra la API real (T-002, T-003, T-006; AC-001 a AC-007).
+"""Pruebas funcionales de administración de usuarios contra la API real.
 
 Requiere el entorno levantado con el esquema y la semilla de db/schema.sql. Mismas variables que test_autenticacion.py.
 Cada ejecución crea personas y cuentas con DNI único; la API no borra cuentas, sólo las desactiva.
-La prueba de último administrador (AC-006) desactiva temporalmente a los demás administradores y los reactiva al terminar.
+La prueba de último administrador desactiva temporalmente a los demás administradores y los reactiva al terminar.
 
 Ejecutar desde la raíz del proyecto:
   python3 -m unittest discover -s tests/api -p 'test_usuarios.py' -v
@@ -25,7 +25,7 @@ CONTRASENA = 'clave-prueba-2026'
 
 
 def dni_unico():
-    # 8 dígitos fuera de los rangos de la semilla (20…, 30…, 40…) y de las pruebas de TUR-003.
+    # 8 dígitos fuera de los rangos de la semilla (20…, 30…, 40…) y de las pruebas de pacientes y profesionales.
     return str(random.randint(60000000, 69999999))
 
 
@@ -95,7 +95,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual(esperado, estado, respuesta)
         return respuesta
 
-    # AC-001: alta para una persona existente; la contraseña no vuelve en la respuesta y la cuenta entra con su rol.
+    # Alta para una persona existente; la contraseña no vuelve en la respuesta y la cuenta entra con su rol.
     def test_ac001_alta_con_persona_existente_y_login_con_su_rol(self):
         dni, _ = self.paciente_sin_cuenta()
         cuenta = self.crear_cuenta({'dni': dni, 'rol': 'paciente', 'contrasena': CONTRASENA})
@@ -113,7 +113,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual(200, estado, cuerpo)
         self.assertEqual('/paciente.html', cuerpo['panel'])
 
-    # AC-002: persona nueva (nombre y apellido obligatorios) o existente (no los necesita); DNI con cuenta → 409.
+    # Persona nueva (nombre y apellido obligatorios) o existente (no los necesita); DNI con cuenta → 409.
     def test_ac002_persona_nueva_o_existente_y_dni_con_cuenta(self):
         dni = dni_unico()
         personas, cuentas = contar('persona'), contar('usuario')
@@ -142,8 +142,8 @@ class UsuariosTest(unittest.TestCase):
         })
         self.assertEqual('cuenta_existente', cuerpo['error']['codigo'])
 
-    # REV-008, REV-012 y REV-021: una carrera por el mismo DNI responde 409 dni_duplicado (no 500) y la respuesta no muestra el
-    # DNI. Vale para el alta de cuentas (TUR-005) y de pacientes y profesionales (TUR-003), que comparten PersonaRepositorio.
+    # Una carrera por el mismo DNI responde 409 dni_duplicado (no 500) y la respuesta no muestra el
+    # DNI. Vale para el alta de cuentas y de pacientes y profesionales, que comparten PersonaRepositorio.
     def test_carrera_de_dni_responde_409_en_cuentas_pacientes_y_profesionales(self):
         especialidad = self.admin.pedir('GET', '/api/especialidades')[1]['especialidades'][0]['id']
         casos = [
@@ -171,7 +171,7 @@ class UsuariosTest(unittest.TestCase):
                 self.assertNotIn(dni, json.dumps(respuesta))
                 self.assertEqual(['1'], consultar(f"SELECT COUNT(*) FROM persona WHERE dni = '{dni}'"))
 
-    # AC-003: entradas inválidas o sin registro responden sin guardar nada.
+    # Entradas inválidas o sin registro responden sin guardar nada.
     def test_ac003_validaciones_no_guardan_nada(self):
         base = {'dni': dni_unico(), 'nombre': 'Valida', 'apellido': 'Cuenta', 'rol': 'recepcionista', 'contrasena': CONTRASENA}
         casos = {
@@ -191,7 +191,7 @@ class UsuariosTest(unittest.TestCase):
                 self.assertEqual(codigo, respuesta['error']['codigo'])
         self.assertEqual((personas, cuentas), (contar('persona'), contar('usuario')))
 
-    # AC-003 (PUT): entradas inválidas en cambiar rol o estado no cambian la cuenta.
+    # Entradas inválidas al cambiar rol o estado no cambian la cuenta.
     def test_ac003_put_con_entradas_invalidas_no_cambia_la_cuenta(self):
         cuenta = self.nueva_cuenta('recepcionista')
         antes = consultar(f"SELECT rol, estado FROM usuario WHERE id_usuario = {cuenta['id']}")
@@ -199,7 +199,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual('activo_invalido', self.pedir_con_error(400, 'PUT', f"/api/usuarios/{cuenta['id']}/estado", {'activo': 'si'})['error']['codigo'])
         self.assertEqual(antes, consultar(f"SELECT rol, estado FROM usuario WHERE id_usuario = {cuenta['id']}"))
 
-    # AC-003: reactivar una cuenta de paciente cuyo registro se dio de baja responde 409 y la cuenta sigue inactiva.
+    # Reactivar una cuenta de paciente cuyo registro se dio de baja responde 409 y la cuenta sigue inactiva.
     def test_ac003_reactivar_cuenta_sin_registro_activo_responde_409(self):
         dni, id_paciente = self.paciente_sin_cuenta()
         cuenta = self.crear_cuenta({'dni': dni, 'rol': 'paciente', 'contrasena': CONTRASENA})
@@ -210,7 +210,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual('sin_registro_de_rol', cuerpo['error']['codigo'])
         self.assertEqual('inactivo', estado_de_cuenta(cuenta['id']))
 
-    # AC-004: el cambio de rol rige en la sesión abierta y se ve en el listado; desactivar la cierra y reactivar la restaura.
+    # El cambio de rol rige en la sesión abierta y se ve en el listado; desactivar la cierra y reactivar la restaura.
     def test_ac004_cambio_de_rol_y_desactivacion_con_efecto_en_sesiones_abiertas(self):
         cuenta = self.nueva_cuenta('recepcionista')
         cliente = sesion((cuenta['dni'], CONTRASENA))
@@ -234,7 +234,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual(200, Cliente().login(cuenta['dni'], CONTRASENA)[0])
         self.pedir_con_error(200, 'PUT', f"/api/usuarios/{cuenta['id']}/rol", {'rol': 'recepcionista'})
 
-    # AC-005: restablecer la contraseña reemplaza el hash; nunca se devuelve ni se registra el valor.
+    # Restablecer la contraseña reemplaza el hash; nunca se devuelve ni se registra el valor.
     def test_ac005_restablecer_contrasena_guarda_hash_y_no_la_expone(self):
         cuenta = self.nueva_cuenta('recepcionista')
         nueva = 'otra-clave-2026'
@@ -251,7 +251,7 @@ class UsuariosTest(unittest.TestCase):
         self.pedir_con_error(400, 'PUT', f"/api/usuarios/{cuenta['id']}/contrasena", {'contrasena': 'corta'})
         self.pedir_con_error(404, 'PUT', '/api/usuarios/999999999/contrasena', {'contrasena': nueva})
 
-    # AC-005 (Q-9): restablecer la contraseña cierra las sesiones abiertas con la anterior; una sesión nueva sí entra.
+    # Restablecer la contraseña cierra las sesiones abiertas con la anterior; una sesión nueva sí entra.
     def test_ac005_restablecer_contrasena_cierra_las_sesiones_abiertas(self):
         cuenta = self.nueva_cuenta('recepcionista')
         abierta = sesion((cuenta['dni'], CONTRASENA))
@@ -261,7 +261,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual(401, abierta.pedir('GET', '/api/sesion')[0])
         self.assertEqual(200, sesion((cuenta['dni'], 'otra-clave-2026')).pedir('GET', '/api/sesion')[0])
 
-    # Q-8 (REV-005): la baja de un registro desactiva la cuenta de ese mismo rol; no toca otros roles ni reactiva nada.
+    # La baja de un registro desactiva la cuenta de ese mismo rol; no toca otros roles ni reactiva nada.
     def test_q8_baja_de_registro_desactiva_solo_la_cuenta_de_su_rol(self):
         dni, id_paciente = self.paciente_sin_cuenta()
         cuenta = self.crear_cuenta({'dni': dni, 'rol': 'paciente', 'contrasena': CONTRASENA})
@@ -283,7 +283,7 @@ class UsuariosTest(unittest.TestCase):
         self.pedir_con_error(200, 'PUT', f'/api/pacientes/{id_paciente}/estado', {'activo': False}, cliente=self.recepcion)
         self.assertEqual('activo', estado_de_cuenta(cuenta['id']))
         self.assertEqual(200, Cliente().login(dni, CONTRASENA)[0])
-        # La cuenta de administrador de prueba no debe quedar activa con la clave de prueba (REV-022).
+        # La cuenta de administrador de prueba no debe quedar activa con la clave de prueba.
         self.pedir_con_error(200, 'PUT', f"/api/usuarios/{cuenta['id']}/estado", {'activo': False})
 
     def test_q8_baja_de_profesional_desactiva_su_cuenta(self):
@@ -301,7 +301,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual('inactivo', estado_de_cuenta(cuenta['id']))
         self.assertEqual(401, Cliente().login(dni, CONTRASENA)[0])
 
-    # AC-006 (autoprotección): el administrador no se desactiva ni se quita el rol; la cuenta queda como estaba.
+    # Autoprotección: el administrador no se desactiva ni se quita el rol; la cuenta queda como estaba.
     def test_ac006_autoproteccion_no_cambia_la_cuenta(self):
         id_admin = id_de_cuenta(ADMIN_DNI)
         antes = consultar(f'SELECT rol, estado FROM usuario WHERE id_usuario = {id_admin}')
@@ -312,7 +312,7 @@ class UsuariosTest(unittest.TestCase):
         self.assertEqual(antes, consultar(f'SELECT rol, estado FROM usuario WHERE id_usuario = {id_admin}'))
         self.assertEqual(200, self.admin.pedir('GET', '/api/sesion')[0])
 
-    # AC-006 (último administrador): dos administradores se desactivan entre sí a la vez. Un auxiliar retiene el bloqueo
+    # Último administrador: dos administradores se desactivan entre sí a la vez. Un auxiliar retiene el bloqueo
     # de administradores mientras la API procesa la desactivación cruzada; la API espera y responde 409 ultimo_administrador.
     def test_ac006_ultimo_administrador_con_bloqueo_concurrente(self):
         a = self.nueva_cuenta('administrador')
@@ -348,7 +348,7 @@ class UsuariosTest(unittest.TestCase):
                 consultar(f"UPDATE usuario SET estado = 'activo' WHERE id_usuario IN ({', '.join(otros)})")
             consultar(f"UPDATE usuario SET estado = 'inactivo' WHERE id_usuario IN ({a['id']}, {b['id']})")
 
-    # AC-007: sin sesión, 401; con cualquier otro rol, 403 en todas las rutas de usuarios.
+    # Sin sesión, 401; con cualquier otro rol, 403 en todas las rutas de usuarios.
     def test_ac007_control_de_acceso_por_rol(self):
         cuenta = self.nueva_cuenta('recepcionista')
         rutas = [

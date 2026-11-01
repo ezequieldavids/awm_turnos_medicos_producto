@@ -1,8 +1,8 @@
-// Recorridos de TUR-002 en un navegador real (T-003, T-004): AC-001 a AC-006.
+// Recorridos en un navegador real.
 //
 // Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR (specs/TUR-002/artifacts).
+// ARTEFACTOS_DIR.
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:especialidades
 // Cada ejecución crea especialidades con nombre único y las deja inactivas (no hay borrado físico).
@@ -93,10 +93,10 @@ async function main() {
     await pagina.waitForURL((url) => new URL(url).pathname === '/administrador.html');
     await pagina.waitForSelector('#contenido:not(.d-none)');
 
-    // AC-006: la opción Especialidades es un enlace; TUR-005 completó Usuarios, así que no queda ninguna pendiente.
+    // La opción Especialidades es un enlace; se completó Usuarios, así que no queda ninguna pendiente.
     await comprobar('AC-006', 'panel del administrador: Especialidades abre la gestión y no queda ninguna opción pendiente', async () => {
       const enlaces = await pagina.locator('#opciones a.btn-outline-primary').allTextContents();
-      // TUR-003 convirtió en enlaces Profesionales y Pacientes; TUR-004, Consultorios y Agendas; TUR-007, Turnos; TUR-005, Usuarios.
+      // Se convirtieron en enlaces: Profesionales y Pacientes; Consultorios y Agendas; Turnos; Usuarios.
       afirmar(JSON.stringify(enlaces) === JSON.stringify(['Usuarios', 'Especialidades', 'Profesionales', 'Pacientes', 'Consultorios', 'Agendas', 'Ver turnos', 'Ver reportes']), `enlaces: ${enlaces}`);
       const pendientes = await pagina.locator('#opciones .badge.text-bg-secondary').allTextContents();
       afirmar(pendientes.length === 0, `pendientes: ${pendientes}`);
@@ -127,7 +127,7 @@ async function main() {
       return `${cantidad} filas`;
     });
 
-    // AC-001: alta desde el formulario.
+    // Alta desde el formulario.
     await comprobar('AC-001', 'alta desde el formulario: respuesta 201 y aparece en el listado', async () => {
       await abrirNueva(pagina);
       await pagina.fill('#nombre', nombre);
@@ -142,7 +142,7 @@ async function main() {
       return `API 201; ${await captura(pagina, 'AC-001-alta-desktop.png', fila(pagina, nombre))}`;
     });
 
-    // AC-002: validaciones visibles en el formulario.
+    // Validaciones visibles en el formulario.
     await comprobar('AC-002', 'nombre duplicado (otra grafía) muestra el error en el campo y no guarda', async () => {
       await abrirNueva(pagina);
       await pagina.fill('#nombre', `  ${nombre.toUpperCase()}  `);
@@ -172,7 +172,7 @@ async function main() {
       return `API 400; ${archivo}`;
     });
 
-    // AC-003: edición.
+    // Edición.
     await comprobar('AC-003', 'editar el nombre lo actualiza en el listado', async () => {
       await fila(pagina, nombre).getByRole('button', { name: 'Editar' }).click();
       await pagina.waitForSelector('#modal-formulario.show');
@@ -189,7 +189,7 @@ async function main() {
       return await captura(pagina, 'AC-003-edicion-desktop.png', fila(pagina, nombreEditado));
     });
 
-    // AC-004: baja lógica y reactivación (secuencia).
+    // Baja lógica y reactivación (secuencia).
     await comprobar('AC-004', 'desactivar y reactivar desde el listado', async () => {
       const f = fila(pagina, nombreEditado);
       const a1 = await captura(pagina, 'AC-004-01-activa-desktop.png', f);
@@ -226,7 +226,7 @@ async function main() {
 
     await contexto.close();
 
-    // AC-005: sin sesión y roles sin permiso.
+    // Sin sesión y roles sin permiso.
     await comprobar('AC-005', 'sin sesión, abrir la gestión redirige al login', async () => {
       const c = await navegador.newContext({ viewport: ESCRITORIO });
       const p = await c.newPage();
@@ -248,8 +248,8 @@ async function main() {
         await ingresar(p, cuenta);
         await p.waitForURL((url) => new URL(url).pathname === panel);
         await p.waitForSelector('#contenido:not(.d-none)');
-        const enlaces = await p.locator('#opciones a.btn-outline-primary').allTextContents(); // TUR-003: la recepción gestiona pacientes; TUR-007: turnos
-        // TUR-010: «Mis datos personales» pasa a ser un enlace del panel del paciente.
+        const enlaces = await p.locator('#opciones a.btn-outline-primary').allTextContents(); // La recepción gestiona pacientes; turnos
+        // «Mis datos personales» pasa a ser un enlace del panel del paciente.
         const esperados = { recepcionista: ['Pacientes', 'Ver turnos'], paciente: ['Mis datos personales', 'Mis turnos'] };
         afirmar(JSON.stringify(enlaces) === JSON.stringify(esperados[rol] ?? ['Mis turnos']), `enlaces: ${enlaces}`);
         afirmar(!(await p.textContent('#opciones')).includes('Especialidades'), 'no debía ofrecer Especialidades');

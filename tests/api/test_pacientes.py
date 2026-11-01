@@ -1,4 +1,4 @@
-"""Pruebas funcionales de TUR-003: pacientes contra la API real (T-002, AC-001 a AC-004 y AC-007).
+"""Pruebas funcionales de pacientes contra la API real.
 
 Requiere el entorno levantado con el esquema de db/schema.sql. Mismas variables que test_autenticacion.py.
 Cada ejecución crea pacientes con DNI único y los deja inactivos o activos: la API no permite borrarlos.
@@ -58,7 +58,6 @@ class PacientesTest(unittest.TestCase):
         self.assertEqual(esperado, estado, respuesta)
         return respuesta['error']['codigo']
 
-    # AC-001
     def test_ac001_crear_responde_201_aparece_y_se_busca_por_dni_y_apellido(self):
         for cliente in (self.admin, self.recepcion):
             creado = self.crear(cliente, apellido='Ñandú-Ç', email=None)
@@ -78,7 +77,6 @@ class PacientesTest(unittest.TestCase):
         self.assertIsNone(cuerpo['paciente']['obraSocial'])
         self.assertIsNone(cuerpo['paciente']['email'])
 
-    # AC-002
     def test_ac002_validaciones_responden_400_con_codigo_de_campo(self):
         casos = (
             ({'nombre': ''}, 'nombre_invalido'),
@@ -116,7 +114,6 @@ class PacientesTest(unittest.TestCase):
         _, leido, _ = self.admin.pedir('GET', f"/api/pacientes/{creado['id']}")
         self.assertEqual('Prueba', leido['paciente']['nombre'])
 
-    # AC-003
     def test_ac003_modificar_actualiza_y_el_dni_no_cambia(self):
         creado = self.crear()
         estado, cuerpo, _ = self.recepcion.pedir('PUT', f"/api/pacientes/{creado['id']}", datos_paciente(
@@ -151,7 +148,6 @@ class PacientesTest(unittest.TestCase):
         self.assertIn(estado, (404, 405))
         self.assertEqual(['1'], consultar(f"SELECT COUNT(*) FROM paciente WHERE id_paciente = {creado['id']}"))
 
-    # AC-004
     def test_ac004_dni_de_persona_existente_agrega_el_rol_sin_duplicar_persona(self):
         # Una persona que ya es profesional y todavía no es paciente.
         _, esp, _ = self.admin.pedir('GET', '/api/especialidades')
@@ -171,7 +167,7 @@ class PacientesTest(unittest.TestCase):
         self.assertEqual(['1'], consultar(f"SELECT COUNT(*) FROM profesional pr JOIN persona pe USING (id_persona) WHERE pe.dni = '{dni}'"))
         self.assertEqual('dni_duplicado', self.codigo_error('POST', '/api/pacientes', datos_paciente(dni=dni), 409))
 
-    # REV-TUR-003-002: al vincular, lo no enviado conserva su valor; en una edición, vacío borra.
+    # Al vincular, lo no enviado conserva su valor; en una edición, vacío borra.
     def test_ac004_vincular_conserva_datos_opcionales_no_enviados(self):
         _, esp, _ = self.admin.pedir('GET', '/api/especialidades')
         dni = dni_unico()
@@ -188,14 +184,13 @@ class PacientesTest(unittest.TestCase):
             'nombre': 'Con', 'apellido': 'Email', 'fechaNacimiento': '1970-01-02'})
         self.assertEqual((200, None), (estado, cuerpo['paciente']['email']))
 
-    # REV-TUR-003-005: «hoy» se calcula en hora de Argentina.
+    # «Hoy» se calcula en hora de Argentina.
     def test_ac002_fecha_de_nacimiento_usa_la_fecha_local(self):
         hoy = datetime.now(ZoneInfo('America/Argentina/Buenos_Aires')).date()
         self.crear(fechaNacimiento=hoy.isoformat())
         self.assertEqual('fecha_nacimiento_invalida', self.codigo_error(
             'POST', '/api/pacientes', datos_paciente(fechaNacimiento=(hoy + timedelta(days=1)).isoformat()), 400))
 
-    # AC-007
     def test_ac007_sin_sesion_toda_ruta_responde_401(self):
         anonimo = Cliente()
         for metodo, ruta, cuerpo in (

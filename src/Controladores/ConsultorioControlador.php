@@ -11,7 +11,7 @@ use Turnos\Http\HttpException;
 use Turnos\Http\Solicitud;
 use Turnos\Personas\DatosPersona;
 
-// Gestión de consultorios (TUR-004): escritura sólo del administrador; lectura para la recepción y los profesionales
+// Gestión de consultorios: escritura sólo del administrador; lectura para la recepción y los profesionales
 // (estos últimos lo necesitan para elegir consultorio al configurar su agenda).
 final class ConsultorioControlador
 {

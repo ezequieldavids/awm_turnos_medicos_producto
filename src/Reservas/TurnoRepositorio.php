@@ -11,11 +11,11 @@ use Throwable;
 use Turnos\Database;
 use Turnos\Http\HttpException;
 
-// Turnos médicos (TUR-007, RF-07 a RF-11). Un turno ocupa una franja de una agenda; cancelarlo cambia `estado`.
+// Turnos médicos. Un turno ocupa una franja de una agenda; cancelarlo cambia `estado`.
 // Reservar, reprogramar y cancelar se hacen en una transacción. Las altas y los cambios bloquean en este orden:
 // paciente, profesional y consultorio; en reservas y reprogramaciones, después la especialidad (bloquearEspecialidad) y
 // luego la agenda; al cancelar, el turno. Así dos operaciones sobre la misma franja no se cruzan. Las desactivaciones de
-// TUR-002…004 bloquean profesional o consultorio, o la especialidad antes que las agendas (REV-TUR-002-001).
+// especialidades, profesionales y consultorios bloquean profesional o consultorio, o la especialidad antes que las agendas.
 final class TurnoRepositorio
 {
     private const SELECT = 'SELECT t.id_turno, t.fecha, TIME_FORMAT(t.hora_inicio, \'%H:%i\') AS hora_inicio,
@@ -214,7 +214,7 @@ final class TurnoRepositorio
         });
     }
 
-    // REV-TUR-007-003: mismo orden de bloqueo que las reservas (paciente, profesional, consultorio y luego el turno).
+    // Mismo orden de bloqueo que las reservas (paciente, profesional, consultorio y luego el turno).
     // Sin este orden, una cancelación y una reserva del mismo profesional se esperan mutuamente y una de ellas falla con 1213.
     public function cancelar(int $id): void
     {
@@ -230,7 +230,7 @@ final class TurnoRepositorio
         });
     }
 
-    // Asistencia (TUR-006): un turno confirmado cuyo horario ya comenzó pasa a atendido o ausente, y se puede corregir entre
+    // Asistencia: un turno confirmado cuyo horario ya comenzó pasa a atendido o ausente, y se puede corregir entre
     // ambos. Sólo toca el turno (una fila bloqueada): no cambia franjas libres, porque el turno ya pasó.
     public function registrarAsistencia(int $id, string $estado): void
     {
@@ -247,8 +247,9 @@ final class TurnoRepositorio
         });
     }
 
-    // Lo usan las desactivaciones de TUR-002…004 dentro de su transacción, después de bloquear sus filas: si hay turnos
-    // confirmados a partir de ahora en las agendas que `$donde` alcanza, la operación se rechaza y no cambia nada (Q-1).
+    // Lo usan las desactivaciones de especialidades, profesionales y consultorios dentro de su transacción, después de
+    // bloquear sus filas: si hay turnos confirmados a partir de ahora en las agendas que `$donde` alcanza, la operación
+    // se rechaza y no cambia nada.
     // Usa lectura con bloqueo (FOR SHARE) para ver turnos confirmados por otra transacción ya terminada.
     public static function exigirSinTurnosFuturos(string $donde, array $parametros): void
     {
@@ -340,7 +341,7 @@ final class TurnoRepositorio
     }
 
     // Comprueba que nadie más tenga el profesional, el consultorio o al paciente en una franja que se superpone. Un turno atendido o
-    // ausente sigue ocupando su horario (REV-TUR-006-001): sólo el cancelado lo libera.
+    // ausente sigue ocupando su horario: sólo el cancelado lo libera.
     // `$excluir` es el id del turno que se reprograma (0 en una reserva).
     private function exigirLibre(array $agenda, int $paciente, string $fecha, string $inicio, string $fin, int $excluir): void
     {
@@ -397,7 +398,7 @@ final class TurnoRepositorio
         }
     }
 
-    // REV-TUR-002-001 / REV-TUR-004: la especialidad se bloquea en su propia sentencia, después de profesional y consultorio y
+    // La especialidad se bloquea en su propia sentencia, después de profesional y consultorio y
     // antes de leer la agenda. Así una desactivación de especialidad (que bloquea la especialidad y después las agendas) no
     // puede esperar a una reserva que ya tiene la agenda y espera la especialidad.
     private function bloquearEspecialidad(int $id): void
@@ -476,7 +477,7 @@ final class TurnoRepositorio
             'horaFin' => $fila['hora_fin'],
             'estado' => $fila['estado'],
             'motivo' => $fila['motivo'],
-            // Un turno confirmado con fecha y hora ya pasadas no se puede modificar (CU-04).
+            // Un turno confirmado con fecha y hora ya pasadas no se puede modificar.
             'pasado' => $fecha . ' ' . $fila['hora_inicio'] . ':00' <= self::ahora(),
             'paciente' => [
                 'id' => (int) $fila['id_paciente'],

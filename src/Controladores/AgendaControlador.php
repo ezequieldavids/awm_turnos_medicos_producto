@@ -12,8 +12,8 @@ use Turnos\Consultorios\ConsultorioRepositorio;
 use Turnos\Http\HttpException;
 use Turnos\Http\Solicitud;
 
-// Agendas médicas (TUR-004, CU-05): el administrador configura cualquier agenda; el profesional, sólo la suya.
-// La recepción las lee activas (insumo de TUR-007).
+// Agendas médicas: el administrador configura cualquier agenda; el profesional, sólo la suya.
+// La recepción las lee activas (insumo para los turnos).
 final class AgendaControlador
 {
     private AgendaRepositorio $repositorio;
@@ -188,7 +188,7 @@ final class AgendaControlador
         $canonica = is_string($valor) && preg_match('/^\d{4}-\d{2}-\d{2}\z/', $valor) === 1;
         $fecha = $canonica ? DateTimeImmutable::createFromFormat('!Y-m-d', $valor) : false;
         $errores = DateTimeImmutable::getLastErrors();
-        // Año mínimo 1900, como las fechas de nacimiento de TUR-003 (REV-TUR-004-012).
+        // Año mínimo 1900, como las fechas de nacimiento de pacientes y profesionales.
         if ($fecha === false || ($errores && ($errores['warning_count'] || $errores['error_count'])) || (int) $fecha->format('Y') < 1900) {
             throw new HttpException(400, $codigo, $mensaje);
         }

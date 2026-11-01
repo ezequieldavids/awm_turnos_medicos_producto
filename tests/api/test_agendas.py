@@ -1,6 +1,6 @@
-"""Pruebas funcionales de TUR-004: consultorios y agendas contra la API real (T-002 y T-003; AC-001 a AC-007).
+"""Pruebas funcionales de consultorios y agendas contra la API real.
 
-Requiere el entorno levantado con el esquema de db/schema.sql (sección TUR-004). Mismas variables que test_autenticacion.py.
+Requiere el entorno levantado con el esquema de db/schema.sql. Mismas variables que test_autenticacion.py.
 Cada ejecución crea consultorios, profesionales y agendas nuevos: la API no permite borrarlos. Para que las pruebas no se
 crucen entre sí ni con la semilla, cada una usa un profesional recién creado (salvo la que actúa como el profesional de la
 cuenta de prueba, que usa un horario aleatorio fuera del lunes de la semilla) y una vigencia en un año aleatorio lejano.
@@ -114,7 +114,6 @@ class ConsultoriosTest(unittest.TestCase):
         self.assertEqual(esperado, estado, respuesta)
         return respuesta['error']['codigo']
 
-    # AC-001
     def test_ac001_administrador_crea_y_el_listado_lo_muestra(self):
         creado = self.crear()
         self.assertEqual('N', creado['numero'][:1])
@@ -136,7 +135,6 @@ class ConsultoriosTest(unittest.TestCase):
                 self.assertEqual(403, cliente.pedir('POST', '/api/consultorios', datos_consultorio())[0])
                 self.assertEqual(403, cliente.pedir('PUT', f"/api/consultorios/{existente['id']}", datos_consultorio())[0])
 
-    # AC-002
     def test_ac002_rechazos_de_datos_y_duplicado(self):
         casos = (
             ({'numero': ''}, 'numero_invalido'),
@@ -155,7 +153,6 @@ class ConsultoriosTest(unittest.TestCase):
         self.assertEqual('numero_duplicado', self.codigo_error(
             self.admin, 'PUT', f"/api/consultorios/{otro['id']}", datos_consultorio(numero=existente['numero']), 409))
 
-    # AC-003
     def test_ac003_modificar_inexistente_responde_404(self):
         self.assertEqual(404, self.admin.pedir('PUT', '/api/consultorios/999999', datos_consultorio())[0])
 
@@ -166,7 +163,7 @@ class ConsultoriosTest(unittest.TestCase):
         self.assertEqual('Nueva', cuerpo['consultorio']['ubicacion'])
 
     def test_ac003_no_se_desactiva_con_agendas_activas(self):
-        # Consultorio propio con una agenda y sin turnos: el 409 es sólo por la agenda activa (TUR-007 revisa turnos antes).
+        # Consultorio propio con una agenda y sin turnos: el 409 es sólo por la agenda activa.
         creado = self.crear()
         profesional = profesional_por_matricula(self.admin, 'MP-10001')['id']
         especialidad = especialidad_por_nombre(self.admin, 'Clínica Médica')
@@ -194,7 +191,7 @@ class ConsultoriosTest(unittest.TestCase):
         creado = self.crear()
         self.assertEqual(405, self.admin.pedir('DELETE', f"/api/consultorios/{creado['id']}")[0])
 
-    # AC-007 (lectura por rol)
+    # Lectura por rol.
     def test_ac007_lectura_por_rol_y_sin_sesion(self):
         self.assertEqual(401, Cliente().pedir('GET', '/api/consultorios')[0])
         self.assertEqual(200, self.recepcion.pedir('GET', '/api/consultorios')[0])
@@ -247,7 +244,6 @@ class AgendasTest(unittest.TestCase):
         self.assertEqual(esperado, estado, respuesta)
         return respuesta['error']['codigo']
 
-    # AC-004
     def test_ac004_alta_aparece_y_se_filtra_por_profesional_y_consultorio(self):
         profesional = self.profesional_nuevo()
         consultorio = self.consultorio()
@@ -303,7 +299,7 @@ class AgendasTest(unittest.TestCase):
                 datos = datos_agenda(profesional, self.consultorio(), self.clinica, anio)
                 datos.update(cambios)
                 self.assertEqual(codigo, self.codigo_error('POST', '/api/agendas', datos, estado))
-        # REV-006: ningún rechazo deja filas en la tabla.
+        # Ningún rechazo deja filas en la tabla.
         self.assertEqual(antes, consultar('SELECT COUNT(*) FROM agenda'))
 
     def test_ac004_profesional_configura_solo_su_agenda(self):
@@ -323,7 +319,6 @@ class AgendasTest(unittest.TestCase):
         self.assertEqual('especialidad_invalida', self.codigo_error('POST', '/api/agendas',
                          datos_agenda(self.p1, self.consultorio(), self.cardiologia, anio_unico()), 400, self.profesional))
 
-    # AC-005
     def test_ac005_superposicion_por_profesional_o_por_consultorio(self):
         anio = anio_unico()
         profesional = self.profesional_nuevo()
@@ -386,7 +381,6 @@ class AgendasTest(unittest.TestCase):
         self.assertEqual(['1'], consultar(
             f"SELECT COUNT(*) FROM agenda WHERE id_profesional = {profesional} AND vigente_desde = '{anio}-01-01'"))
 
-    # AC-006
     def test_ac006_modificar_excluye_la_propia_agenda(self):
         creada = self.crear()
         estado, cuerpo, _ = self.admin.pedir('PUT', f"/api/agendas/{creada['id']}", datos_agenda(
@@ -423,7 +417,7 @@ class AgendasTest(unittest.TestCase):
         self.assertTrue(cuerpo['agenda']['activa'])
         self.assertEqual(['1'], consultar(f"SELECT activa FROM agenda WHERE id_agenda = {a['id']}"))
 
-    # REV-007: profesional o consultorio inactivos bloquean editar y reactivar, no sólo crear.
+    # Profesional o consultorio inactivos bloquean editar y reactivar, no sólo crear.
     def test_ac006_profesional_o_consultorio_inactivos_bloquean_editar_y_reactivar(self):
         profesional = self.profesional_nuevo()
         anio = anio_unico()
@@ -442,7 +436,7 @@ class AgendasTest(unittest.TestCase):
         self.assertEqual('consultorio_inactivo', self.codigo_error('PUT', f"/api/agendas/{b['id']}", datos_agenda(
             b['profesional']['id'], consultorio, self.clinica, anio), 409))
 
-    # A-05 (TUR-004): desactivar al profesional desactiva sus agendas; reactivarlo no las reactiva.
+    # Desactivar al profesional desactiva sus agendas; reactivarlo no las reactiva.
     def test_ac006_desactivar_profesional_desactiva_sus_agendas(self):
         profesional = self.profesional_nuevo()
         anio = anio_unico()
@@ -456,7 +450,7 @@ class AgendasTest(unittest.TestCase):
         estado, cuerpo, _ = self.admin.pedir('PUT', f"/api/agendas/{a['id']}/estado", {'activa': True})
         self.assertEqual(200, estado, cuerpo)  # cada agenda se reactiva por separado, con sus validaciones
 
-    # A-05 (TUR-004): quitar una especialidad desactiva sólo las agendas que la usan.
+    # Quitar una especialidad desactiva sólo las agendas que la usan.
     def test_ac004_quitar_especialidad_desactiva_solo_las_agendas_de_esa_especialidad(self):
         profesional = self.profesional_nuevo([self.clinica, self.cardiologia])
         anio = anio_unico()
@@ -474,7 +468,7 @@ class AgendasTest(unittest.TestCase):
         self.assertEqual('especialidad_invalida', self.codigo_error(
             'PUT', f"/api/agendas/{con_cardio['id']}/estado", {'activa': True}, 400))
 
-    # REV-TUR-004-019: quitar una especialidad espera a un alta concurrente del profesional y desactiva también la agenda
+    # Quitar una especialidad espera a un alta concurrente del profesional y desactiva también la agenda
     # que esa alta confirma. Sin el bloqueo del profesional al empezar modificar(), la prueba recibe agendasDesactivadas 0.
     def test_ac004_quitar_especialidad_espera_al_alta_concurrente_y_desactiva_su_agenda(self):
         profesional = self.profesional_nuevo([self.clinica, self.cardiologia])
@@ -496,7 +490,7 @@ class AgendasTest(unittest.TestCase):
         self.assertEqual(['0'], consultar(
             f"SELECT activa FROM agenda WHERE id_profesional = {profesional} AND vigente_desde = '{anio}-01-01'"))
 
-    # REV-TUR-004-016 (A-05): una alta con una especialidad que se está desactivando espera y responde 400; no queda
+    # Una alta con una especialidad que se está desactivando espera y responde 400; no queda
     # una agenda activa con especialidad inactiva. Sin FOR SHARE en la alta, la prueba recibe 201.
     def test_ac005_alta_con_especialidad_que_se_desactiva_espera_y_se_rechaza(self):
         especialidad = self.admin.pedir('POST', '/api/especialidades', {'nombre': f'Carrera A05 {uuid.uuid4().hex[:8]}'})[1]['especialidad']['id']
@@ -517,7 +511,7 @@ class AgendasTest(unittest.TestCase):
         self.assertGreater(espera, 1.0, 'el alta debía esperar a que se confirmara la desactivación')
         self.assertEqual(['0'], consultar(f"SELECT COUNT(*) FROM agenda WHERE id_profesional = {profesional}"))
 
-    # REV-TUR-004-014 (A-05): las respuestas indican cuántas agendas se desactivaron o reactivaron.
+    # Las respuestas indican cuántas agendas se desactivaron o reactivaron.
     def test_ac006_respuestas_indican_las_agendas_desactivadas(self):
         profesional = self.profesional_nuevo([self.clinica, self.cardiologia])
         anio = anio_unico()
@@ -534,7 +528,7 @@ class AgendasTest(unittest.TestCase):
         estado, cuerpo, _ = self.admin.pedir('PUT', f'/api/profesionales/{profesional}/estado', {'activo': True})
         self.assertEqual((200, 0), (estado, cuerpo['agendasDesactivadas']))  # reactivar no reactiva agendas
 
-    # A-05 (TUR-004 y TUR-002): desactivar una especialidad desactiva las agendas que la usan; reactivarla no las reactiva.
+    # Desactivar una especialidad desactiva las agendas que la usan; reactivarla no las reactiva.
     def test_ac006_desactivar_especialidad_desactiva_sus_agendas(self):
         especialidad = self.admin.pedir('POST', '/api/especialidades', {'nombre': f'Acuerdo A05 {uuid.uuid4().hex[:8]}'})[1]['especialidad']['id']
         profesional = self.profesional_nuevo([especialidad])
@@ -550,7 +544,6 @@ class AgendasTest(unittest.TestCase):
         creada = self.crear()
         self.assertEqual(405, self.admin.pedir('DELETE', f"/api/agendas/{creada['id']}")[0])
 
-    # AC-007
     def test_ac007_control_de_acceso(self):
         datos = datos_agenda(self.p1, self.consultorio_inactivo, self.clinica, 2200)
         self.assertEqual(401, Cliente().pedir('GET', '/api/agendas')[0])

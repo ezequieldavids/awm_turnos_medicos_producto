@@ -12,13 +12,13 @@ use Turnos\Http\Solicitud;
 use Turnos\Reservas\Franjas;
 use Turnos\Reservas\TurnoRepositorio;
 
-// Turnos médicos (TUR-007, CU-03 y CU-04). El paciente reserva, cancela y reprograma sólo los suyos; la recepción y el
+// Turnos médicos. El paciente reserva, cancela y reprograma sólo los suyos; la recepción y el
 // administrador, cualquiera; el profesional sólo lee los turnos de sus agendas.
 final class TurnoControlador
 {
     private const TODOS = [Roles::PACIENTE, Roles::PROFESIONAL, Roles::RECEPCIONISTA, Roles::ADMINISTRADOR];
     private const GESTIONAN = [Roles::PACIENTE, Roles::RECEPCIONISTA, Roles::ADMINISTRADOR];
-    // Registran la asistencia (TUR-006): el profesional en sus turnos; recepción y administrador en cualquiera.
+    // Registran la asistencia: el profesional en sus turnos; recepción y administrador en cualquiera.
     private const REGISTRAN_ASISTENCIA = [Roles::PROFESIONAL, Roles::RECEPCIONISTA, Roles::ADMINISTRADOR];
 
     private TurnoRepositorio $repositorio;
