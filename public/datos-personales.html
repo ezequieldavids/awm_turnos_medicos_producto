@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mis datos personales · Turnos médicos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="/assets/css/app.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <header class="barra">
+    <div class="container contenedor">
+      <a class="marca" href="/"><img src="/assets/img/logo-barra.svg" alt="" width="32" height="32"><span>Gestión de Turnos</span></a>
+      <div class="usuario">
+        <div class="usuario-datos"><span class="usuario-nombre" id="usuario-nombre"></span><span class="usuario-rol" id="usuario-rol"></span></div>
+        <button id="cerrar-sesion" type="button" class="btn btn-cerrar btn-outline-light btn-sm">Cerrar Sesión</button>
+      </div>
+    </div>
+  </header>
+  <main class="container py-4">
+    <div id="alerta" class="alert alert-danger d-none" role="alert"></div>
+    <section id="contenido" class="d-none">
+      <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-2"><li class="breadcrumb-item"><a id="volver" href="/">Inicio</a></li><li class="breadcrumb-item active" aria-current="page">Mis datos personales</li></ol></nav>
+      <div class="mb-3"><h1 class="titulo-pagina">Mis datos personales</h1><p class="subtitulo-pagina">Consulta de tus datos personales. Para corregirlos, comunicate con recepción.</p></div>
+
+      <section class="card" aria-labelledby="titulo-datos">
+        <div class="card-body">
+          <h2 class="h5 card-title" id="titulo-datos">Datos de tu registro</h2>
+          <dl class="row mb-0" id="datos"></dl>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="/assets/js/datos-personales.js"></script>
+</body>
+</html>

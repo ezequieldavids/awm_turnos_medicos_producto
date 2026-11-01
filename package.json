@@ -1,0 +1,20 @@
+{
+  "name": "turnos-medicos",
+  "private": true,
+  "description": "Turnos médicos: pruebas de navegador de TUR-001 a TUR-007 y TUR-009 (la aplicación web es PHP puro, sin dependencias de runtime).",
+  "scripts": {
+    "test:navegador": "node tests/navegador/recorrido.mjs",
+    "test:navegador:especialidades": "node tests/navegador/especialidades.mjs",
+    "test:navegador:personas": "node tests/navegador/personas.mjs",
+    "test:navegador:datos-personales": "node tests/navegador/datos_personales.mjs",
+    "test:navegador:inactividad": "node tests/navegador/inactividad.mjs",
+    "test:navegador:agendas": "node tests/navegador/agendas.mjs",
+    "test:navegador:turnos": "node tests/navegador/turnos.mjs",
+    "test:navegador:reportes": "node tests/navegador/reportes.mjs",
+    "test:navegador:usuarios": "node tests/navegador/usuarios.mjs",
+    "test:navegador:diseno": "node tests/navegador/diseno.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.64.0"
+  }
+}

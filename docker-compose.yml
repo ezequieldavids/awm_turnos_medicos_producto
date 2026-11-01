@@ -1,0 +1,45 @@
+# Entorno local del sistema. Requiere Docker con Compose v2.
+# Instrucciones de uso: ver README.md, sección «Puesta en Marcha Local».
+services:
+  db:
+    image: mysql:8.4
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    environment:
+      MYSQL_DATABASE: turnos
+      MYSQL_USER: turnos
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Definí DB_PASSWORD antes de iniciar el entorno}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Definí DB_ROOT_PASSWORD antes de iniciar el entorno}
+    volumes:
+      # El esquema y los datos semilla se ejecutan sólo al crear el volumen por primera vez.
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - datos-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build: ./docker/php
+    working_dir: /app
+    command: php -S 0.0.0.0:8080 -t public public/router.php
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: turnos
+      DB_USUARIO: turnos
+      DB_PASSWORD: ${DB_PASSWORD:?Definí DB_PASSWORD antes de iniciar el entorno}
+      # Local sin HTTPS: los navegadores aceptan cookies Secure en localhost.
+      SESSION_SECURE: ${SESSION_SECURE:-1}
+      # Inactividad de la sesión en segundos (TUR-008, Q-1): 15 minutos por defecto.
+      SESION_INACTIVIDAD_SEGUNDOS: ${SESION_INACTIVIDAD_SEGUNDOS:-900}
+    volumes:
+      - ./:/app:ro
+    ports:
+      - "${APP_PUERTO:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  datos-mysql:

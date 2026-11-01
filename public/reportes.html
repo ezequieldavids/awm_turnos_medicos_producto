@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reportes · Turnos médicos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="/assets/css/app.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <header class="barra">
+    <div class="container contenedor">
+      <a class="marca" href="/"><img src="/assets/img/logo-barra.svg" alt="" width="32" height="32"><span>Gestión de Turnos</span></a>
+      <div class="usuario">
+        <div class="usuario-datos"><span class="usuario-nombre" id="usuario-nombre"></span><span class="usuario-rol" id="usuario-rol"></span></div>
+        <button id="cerrar-sesion" type="button" class="btn btn-cerrar btn-outline-light btn-sm">Cerrar Sesión</button>
+      </div>
+    </div>
+  </header>
+  <main class="container py-4">
+    <div id="alerta" class="alert alert-danger d-none" role="alert"></div>
+    <section id="contenido" class="d-none">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small mb-2">
+          <li class="breadcrumb-item"><a id="volver" href="/">Inicio</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Reportes e Indicadores</li>
+        </ol>
+      </nav>
+
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-3">
+        <div>
+          <h1 class="titulo-pagina">Reportes e Indicadores de Gestión</h1>
+          <p class="subtitulo-pagina">Métricas operativas de volumen, tasas de asistencia, cancelaciones y ausentismo.</p>
+        </div>
+        <button id="exportar" type="button" class="btn btn-success">Exportar a CSV</button>
+      </div>
+
+      <section class="card mb-4" aria-labelledby="titulo-filtros">
+        <div class="card-body">
+          <div class="d-flex flex-column flex-lg-row justify-content-between gap-2 mb-3">
+            <h2 class="h6 text-uppercase text-body-secondary mb-0" id="titulo-filtros">Filtros de período y criterios</h2>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="small fw-semibold">Presets rápidos:</span>
+              <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Presets rápidos de período" id="presets">
+                <button type="button" class="btn btn-outline-secondary" data-preset="hoy">Hoy</button>
+                <button type="button" class="btn btn-outline-secondary" data-preset="semana">Última semana</button>
+                <button type="button" class="btn btn-outline-secondary" data-preset="mes">Este mes</button>
+                <button type="button" class="btn btn-outline-secondary" data-preset="mes-anterior">Mes anterior</button>
+                <button type="button" class="btn btn-outline-secondary" data-preset="30-dias">Últimos 30 días</button>
+              </div>
+            </div>
+          </div>
+          <div id="mensaje-filtros" class="alert d-none" role="alert"></div>
+          <form id="formulario" class="row g-3" novalidate>
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label for="fecha-desde" class="form-label fw-semibold">Fecha desde</label>
+              <input id="fecha-desde" type="date" class="form-control" required>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label for="fecha-hasta" class="form-label fw-semibold">Fecha hasta</label>
+              <input id="fecha-hasta" type="date" class="form-control" required>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label for="especialidad" class="form-label fw-semibold">Especialidad</label>
+              <select id="especialidad" class="form-select"><option value="">Todas las especialidades</option></select>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label for="profesional" class="form-label fw-semibold">Profesional</label>
+              <select id="profesional" class="form-select"><option value="">Todos los profesionales</option></select>
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2">
+              <button id="limpiar" type="button" class="btn btn-outline-secondary">Limpiar filtros</button>
+              <button id="aplicar" type="submit" class="btn btn-primary">Aplicar filtros</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="indicadores" class="d-none" aria-label="Indicadores del período">
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-lg-3"><div class="card tarjeta-indicador h-100" style="--color-indicador:#0d6efd"><div class="card-body">
+            <div class="small fw-semibold text-uppercase">Turnos otorgados</div><div class="valor" id="v-otorgados">0</div><div class="small text-body-secondary">Total registrados</div></div></div></div>
+          <div class="col-6 col-lg-3"><div class="card tarjeta-indicador h-100" style="--color-indicador:#198754"><div class="card-body">
+            <div class="small fw-semibold text-uppercase">Atendidos</div><div class="valor text-success" id="v-atendidos">0</div><div class="small text-body-secondary">Atención efectiva</div></div></div></div>
+          <div class="col-6 col-lg-3"><div class="card tarjeta-indicador h-100" style="--color-indicador:#dc3545"><div class="card-body">
+            <div class="small fw-semibold text-uppercase">Cancelados</div><div class="valor text-danger" id="v-cancelados">0</div><div class="small text-body-secondary">Cancelaciones registradas</div></div></div></div>
+          <div class="col-6 col-lg-3"><div class="card tarjeta-indicador h-100" style="--color-indicador:#ffc107"><div class="card-body">
+            <div class="small fw-semibold text-uppercase">Ausentes</div><div class="valor text-warning-emphasis" id="v-ausentes">0</div><div class="small text-body-secondary">Inasistencias registradas</div></div></div></div>
+        </div>
+        <div class="row g-3 mb-2">
+          <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
+            <div class="small fw-semibold text-uppercase">Tasa de ausentismo</div><div class="valor fs-2 fw-bold" id="t-ausentismo">—</div><div class="small text-body-secondary">Inasistencias sobre turnos cumplidos</div></div></div></div>
+          <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
+            <div class="small fw-semibold text-uppercase">Tasa de cancelación</div><div class="valor fs-2 fw-bold" id="t-cancelacion">—</div><div class="small text-body-secondary">Cancelaciones sobre turnos totales</div></div></div></div>
+          <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
+            <div class="small fw-semibold text-uppercase">Tasa de ocupación</div><div class="valor fs-2 fw-bold" id="t-ocupacion">—</div><div class="small text-body-secondary">Turnos no cancelados sobre franjas ofrecidas por agendas activas</div></div></div></div>
+        </div>
+        <p class="small text-body-secondary mb-3" id="confirmados"></p>
+
+        <h2 class="h5">Detalle por especialidad y profesional</h2>
+        <div class="table-responsive bg-body border rounded">
+          <table class="table table-sm small align-middle mb-0" id="tabla-desglose">
+            <thead>
+              <tr>
+                <th scope="col">Especialidad</th><th scope="col">Profesional</th>
+                <th scope="col" class="text-end">Otorgados</th><th scope="col" class="text-end">Atendidos</th>
+                <th scope="col" class="text-end">Cancelados</th><th scope="col" class="text-end">Ausentes</th>
+                <th scope="col" class="text-end">Pendientes</th><th scope="col" class="text-end">Program.</th>
+                <th scope="col" class="text-end" title="Tasa de ausentismo">% Ausent.</th><th scope="col" class="text-end" title="Tasa de cancelación">% Cancel.</th><th scope="col" class="text-end" title="Tasa de ocupación">% Ocup.</th>
+              </tr>
+            </thead>
+            <tbody id="filas"></tbody>
+          </table>
+        </div>
+        <p class="small text-body-secondary mt-2">«Pendientes»: confirmados cuya hora ya pasó y todavía no tienen la asistencia registrada. «Programados»: confirmados a futuro.</p>
+      </section>
+
+      <section id="vacio" class="alert alert-info text-center py-5 d-none" aria-live="polite">
+        <div class="fs-1" aria-hidden="true">📅</div>
+        <h2 class="h5 mt-2">No se registran turnos para el período seleccionado</h2>
+        <p class="mb-0" id="vacio-detalle"></p>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="/assets/js/reportes.js"></script>
+</body>
+</html>
