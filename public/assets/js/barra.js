@@ -76,6 +76,10 @@ export async function iniciarBarra() {
     if (volver && panel) {
       volver.href = panel;
     }
+    const marca = document.querySelector('.marca');
+    if (marca && panel) {
+      marca.href = panel;
+    }
     iniciarInactividad(respuesta.datos.inactividadSegundos);
     return respuesta.datos;
   } catch {
