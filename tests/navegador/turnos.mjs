@@ -1,8 +1,8 @@
-// Recorridos en un navegador real: turnos y disponibilidad (interfaz y flujos).
+// Recorridos en un navegador real: turnos y disponibilidad, AC-001 a AC-009 (interfaz y flujos).
 //
-// Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
+// Requiere la aplicación levantada con la base de db/schema.sql  y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR.
+// ARTEFACTOS_DIR (artefactos).
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:turnos
 // Cada ejecución crea consultorios, profesionales, agendas, pacientes y turnos con datos únicos (no hay borrado físico).
@@ -89,6 +89,9 @@ async function api(page, metodo, ruta, cuerpo) {
 const sinDesborde = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
 // Primer día del año que cae en miércoles (3 = miércoles en ISO), en formato AAAA-MM-DD.
+// Las filas muestran la fecha como DD-MM-AAAA ; la API sigue usando AAAA-MM-DD.
+const fechaVisible = (iso) => iso.split('-').reverse().join('-');
+
 function miercolesDe(anio) {
   const dia = new Date(Date.UTC(anio, 0, 1));
   while (dia.getUTCDay() !== 3) {
@@ -147,7 +150,7 @@ async function main() {
     const original = await profesionalConAgenda(`Origen${sufijo}`, '09:00');
     const destino = await profesionalConAgenda(nombreDestino, '09:00');
 
-    // Paciente: panel, búsqueda, reserva.
+    // Paciente: panel, búsqueda, reserva .
     const contextoPaciente = await navegador.newContext({ viewport: ESCRITORIO });
     const paciente = await contextoPaciente.newPage();
     await ingresar(paciente, PACIENTE);
@@ -178,8 +181,8 @@ async function main() {
       afirmar((await respuesta).status() === 201, 'la reserva no respondió 201');
       await paciente.waitForSelector('#reserva-mensaje:not(.d-none)');
       afirmar((await paciente.textContent('#reserva-mensaje')).includes('Turno reservado'), 'falta el mensaje de reserva confirmada');
-      await paciente.waitForSelector(`#filas tr:has-text("${fecha} · 09:00 a 09:15")`);
-      afirmar(await filaTurno(paciente, `${fecha} · 09:00 a 09:15`).count() === 1, 'el turno reservado no aparece en el listado');
+      await paciente.waitForSelector(`#filas tr:has-text("${fechaVisible(fecha)} · 09:00 a 09:15")`);
+      afirmar(await filaTurno(paciente, `${fechaVisible(fecha)} · 09:00 a 09:15`).count() === 1, 'el turno reservado no aparece en el listado');
     });
 
     await comprobar('AC-002', 'reserva desde el móvil (390×844): mensaje de confirmación y turno en la lista, sin desborde', async () => {
@@ -191,32 +194,33 @@ async function main() {
       await buscarHorarios(pagina, clinica, fecha, fecha, original.profesional);
       await filaFranja(pagina, '09:15 a 09:30').getByRole('button', { name: 'Reservar' }).click();
       await pagina.waitForSelector('#reserva-mensaje:not(.d-none)');
-      await pagina.waitForSelector(`#filas tr:has-text("${fecha} · 09:15 a 09:30")`);
+      await pagina.waitForSelector(`#filas tr:has-text("${fechaVisible(fecha)} · 09:15 a 09:30")`);
       afirmar(await sinDesborde(pagina), 'la reserva desborda horizontalmente en móvil');
       await captura(pagina, 'AC-002-reserva-confirmada-movil.png', pagina.locator('#reserva-mensaje'));
       await movil.close();
     });
 
-    // Cancelar el turno libera la franja.
+    // AC-004: cancelar el turno libera la franja.
     await comprobar('AC-004', 'el paciente cancela el turno y la franja vuelve a aparecer en la búsqueda', async () => {
       paciente.once('dialog', (dialogo) => dialogo.accept());
       const respuesta = paciente.waitForResponse((r) => /\/api\/turnos\/\d+\/estado$/.test(new URL(r.url()).pathname));
-      await filaTurno(paciente, `${fecha} · 09:00 a 09:15`).getByRole('button', { name: 'Cancelar' }).click();
+      await filaTurno(paciente, `${fechaVisible(fecha)} · 09:00 a 09:15`).getByRole('button', { name: 'Cancelar' }).click();
       afirmar((await respuesta).status() === 200, 'la cancelación no respondió 200');
       await paciente.waitForSelector('#mensaje-turno:not(.d-none)');
       afirmar((await paciente.textContent('#mensaje-turno')).includes('Turno cancelado'), 'falta el mensaje de cancelación');
+      await filaTurno(paciente, 'Cancelado').first().waitFor();
       afirmar(await filaTurno(paciente, 'Cancelado').count() >= 1, 'el turno no figura como cancelado');
       await captura(paciente, 'AC-004-cancelacion-desktop.png', filaTurno(paciente, 'Cancelado').first());
       await buscarHorarios(paciente, clinica, fecha, fecha, original.profesional);
       afirmar(await filaFranja(paciente, '09:00 a 09:15').count() === 1, 'la franja cancelada no volvió a estar libre');
     });
 
-    // Reprogramar a otro profesional de la misma especialidad.
+    // AC-005: reprogramar a otro profesional de la misma especialidad.
     await comprobar('AC-005', 'reprogramación a otro profesional de la misma especialidad, con captura del modal', async () => {
       await api(paciente, 'POST', '/api/turnos', { agenda: original.agenda, fecha, horaInicio: '09:30' });
       await paciente.reload();
-      await paciente.waitForSelector(`#filas tr:has-text("${fecha} · 09:30 a 09:45")`);
-      await filaTurno(paciente, `${fecha} · 09:30 a 09:45`).getByRole('button', { name: 'Reprogramar' }).click();
+      await paciente.waitForSelector(`#filas tr:has-text("${fechaVisible(fecha)} · 09:30 a 09:45")`);
+      await filaTurno(paciente, `${fechaVisible(fecha)} · 09:30 a 09:45`).getByRole('button', { name: 'Reprogramar' }).click();
       await paciente.waitForSelector('#modal-reprogramar.show');
       await paciente.fill('#reprogramar-desde', fecha);
       await paciente.fill('#reprogramar-hasta', fecha);
@@ -232,7 +236,8 @@ async function main() {
       afirmar((await cambio).status() === 200, 'la reprogramación no respondió 200');
       await paciente.waitForSelector('#modal-reprogramar', { state: 'hidden' });
       afirmar((await paciente.textContent('#mensaje-turno')).includes('Turno reprogramado'), 'falta el mensaje de reprogramación');
-      afirmar(await filaTurno(paciente, `${fecha} · 09:00 a 09:15`).filter({ hasText: nombreDestino }).count() === 1,
+      await filaTurno(paciente, `${fechaVisible(fecha)} · 09:00 a 09:15`).filter({ hasText: nombreDestino }).waitFor();
+      afirmar(await filaTurno(paciente, `${fechaVisible(fecha)} · 09:00 a 09:15`).filter({ hasText: nombreDestino }).count() === 1,
         'el listado no muestra el nuevo profesional');
     });
 
@@ -242,8 +247,8 @@ async function main() {
       await ingresar(pagina, PACIENTE);
       await pagina.waitForURL((url) => new URL(url).pathname === '/paciente.html');
       await abrir(pagina, 'turnos.html');
-      await pagina.waitForSelector(`#filas tr:has-text("${fecha} · 09:00 a 09:15")`);
-      await filaTurno(pagina, `${fecha} · 09:00 a 09:15`).getByRole('button', { name: 'Reprogramar' }).click();
+      await pagina.waitForSelector(`#filas tr:has-text("${fechaVisible(fecha)} · 09:00 a 09:15")`);
+      await filaTurno(pagina, `${fechaVisible(fecha)} · 09:00 a 09:15`).getByRole('button', { name: 'Reprogramar' }).click();
       await pagina.waitForSelector('#modal-reprogramar.show');
       await pagina.fill('#reprogramar-desde', fecha);
       await pagina.fill('#reprogramar-hasta', fecha);
@@ -256,7 +261,7 @@ async function main() {
       await movil.close();
     });
 
-    // Listado de recepción con filtros.
+    // AC-006: listado de recepción con filtros.
     await comprobar('AC-006', 'recepción lista los turnos del día, filtrados por fecha, en 1280×800', async () => {
       const contextoRecepcion = await navegador.newContext({ viewport: ESCRITORIO });
       const recepcion = await contextoRecepcion.newPage();
@@ -265,7 +270,7 @@ async function main() {
       await abrir(recepcion, 'turnos.html');
       await recepcion.fill('#filtro-desde', fecha);
       await recepcion.fill('#filtro-hasta', fecha);
-      await recepcion.waitForSelector(`#filas tr:has-text("${fecha}")`);
+      await recepcion.waitForSelector(`#filas tr:has-text("${fechaVisible(fecha)}")`);
       afirmar(await recepcion.locator('#columna-paciente').isVisible(), 'recepción no ve la columna de paciente');
       await captura(recepcion, 'AC-006-listado-recepcion-desktop.png');
       await contextoRecepcion.close();
@@ -277,23 +282,25 @@ async function main() {
       await ingresar(pagina, PACIENTE);
       await pagina.waitForURL((url) => new URL(url).pathname === '/paciente.html');
       await abrir(pagina, 'turnos.html');
-      await pagina.waitForSelector(`#filas tr:has-text("${fecha}")`);
+      await pagina.waitForSelector(`#filas tr:has-text("${fechaVisible(fecha)}")`);
       afirmar(await pagina.locator('#columna-paciente').isHidden(), 'el paciente ve la columna de paciente');
-      // En 390 px el profesional y la especialidad de cada turno deben verse.
-      const detalle = pagina.locator('#filas small', { hasText: nombreDestino }).first();
+      // En 390 px el profesional y la especialidad de cada turno deben verse .
+      // La tarjeta muestra el profesional en su propia celda, con el rótulo «Profesional».
+      const detalle = pagina.locator('#filas td', { hasText: nombreDestino }).first();
       afirmar(await detalle.isVisible(), 'en móvil no se ve el profesional de cada turno');
       afirmar(await sinDesborde(pagina), 'el historial desborda horizontalmente en móvil');
       await captura(pagina, 'AC-006-historial-paciente-movil.png', filaTurno(pagina, nombreDestino).first());
       await movil.close();
     });
 
-    // El profesional ve sus turnos, sin formulario de reserva ni acciones de gestión.
+    // AC-007 y AC-009: el profesional ve sus turnos, sin formulario de reserva ni acciones de gestión.
     await comprobar('AC-007', 'el profesional lista sus turnos sin «Reservar turno» ni acciones de gestión', async () => {
       const contextoProfesional = await navegador.newContext({ viewport: ESCRITORIO });
       const profesional = await contextoProfesional.newPage();
       await ingresar(profesional, PROFESIONAL);
       await profesional.waitForURL((url) => new URL(url).pathname === '/profesional.html');
       const opcion = profesional.locator('#opciones a', { hasText: 'Mis turnos' });
+      await opcion.waitFor();
       afirmar(await opcion.count() === 1, 'no hay enlace «Mis turnos» en el panel del profesional');
       await opcion.click();
       await profesional.waitForURL((url) => new URL(url).pathname === '/turnos.html');

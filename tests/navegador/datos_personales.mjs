@@ -1,10 +1,10 @@
-// Recorrido en un navegador real: autoconsulta de datos personales del paciente.
-// Cubre: panel, campos sin cargar, sin sesión, solo lectura y texto escapado
-// y viewports 390×844 y 1280×800.
+// Recorrido en un navegador real : autoconsulta de datos personales del paciente.
+// Cubre AC-001 (panel), AC-003 (campos sin cargar), AC-004 (sin sesión), AC-007 (solo lectura y texto escapado)
+// y AC-008 (viewports 390×844 y 1280×800).
 //
 // Requiere la aplicación levantada con la base de db/schema.sql y Chrome instalado.
 // Variables opcionales: APP_URL (http://127.0.0.1:8080), CHROME_PATH (/usr/bin/google-chrome),
-// ARTEFACTOS_DIR.
+// ARTEFACTOS_DIR (artefactos).
 //
 // Ejecutar desde la raíz del proyecto: npm run test:navegador:datos-personales
 // Cada ejecución crea un paciente nuevo con DNI único y cuenta propia; no modifica al paciente semilla.
@@ -73,7 +73,7 @@ async function main() {
   const navegador = await chromium.launch({ executablePath: CHROME, headless: true });
   const dni = dniUnico();
   const apellido = `Datos${sufijo}`;
-  // Texto con etiquetas: debe verse tal cual, sin interpretarse como HTML.
+  // Texto con etiquetas: debe verse tal cual, sin interpretarse como HTML .
   const obraSocial = `<b>Cobertura ${sufijo}</b>`;
 
   try {
@@ -110,12 +110,12 @@ async function main() {
       return archivo;
     });
 
-    await comprobar('AC-003', 'campos sin cargar como «Sin cargar»; fecha en DD/MM/AAAA; datos del registro', async () => {
+    await comprobar('AC-003', 'campos sin cargar como «Sin cargar»; fecha en DD-MM-AAAA; datos del registro', async () => {
       afirmar(JSON.stringify(await etiquetas(p)) === JSON.stringify(['DNI', 'Nombre', 'Apellido', 'Fecha de nacimiento', 'Teléfono', 'Email', 'Obra social']),
         `etiquetas: ${await etiquetas(p)}`);
       const [dato, nombre, apellidoMostrado, fecha, telefono, email] = await valores(p);
       afirmar(dato === dni && nombre === 'Navegador' && apellidoMostrado === apellido, `datos: ${dato} ${nombre} ${apellidoMostrado}`);
-      afirmar(fecha === '17/05/1990', `fecha: ${fecha}`);
+      afirmar(fecha === '17-05-1990', `fecha: ${fecha}`);
       afirmar(telefono === 'Sin cargar' && email === 'Sin cargar', `sin cargar: ${telefono} / ${email}`);
       return captura(p, 'AC-003-datos-sin-cargar-desktop.png');
     });

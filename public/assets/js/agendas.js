@@ -1,5 +1,5 @@
 import { pedir } from '/assets/js/api.js';
-import { alerta, boton, celda, errorFormulario, estadoYAcciones, iniciarEncabezado, limpiarErrores, mostrarError, sesionValida, señalar } from '/assets/js/ui.js';
+import { alerta, boton, celda, errorFormulario, estadoYAcciones, fechaVisible, iniciarEncabezado, limpiarErrores, mostrarError, rotular, sesionValida, señalar } from '/assets/js/ui.js';
 
 const DIAS = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const contenido = document.querySelector('#contenido');
@@ -27,7 +27,7 @@ let consultorios = [];
 let editandoId = null;
 
 const nombreProfesional = (p) => `${p.apellido}, ${p.nombre}`;
-const vigencia = (a) => `${a.vigenteDesde} al ${a.vigenteHasta ?? 'sin fin'}`;
+const vigencia = (a) => `${fechaVisible(a.vigenteDesde)} al ${a.vigenteHasta ? fechaVisible(a.vigenteHasta) : 'sin fin'}`;
 
 function pintar(agendas) {
   filas.replaceChildren();
@@ -46,6 +46,8 @@ function pintar(agendas) {
       boton('Editar', 'btn-outline-primary', () => abrirFormulario(a)),
       boton(a.activa ? 'Desactivar' : 'Reactivar', a.activa ? 'btn-outline-danger' : 'btn-outline-success', () => cambiarEstado(a)),
     ]);
+    // En la tarjeta el dato principal es «Día y horario»; el profesional queda como rótulo.
+    rotular(fila, ['Profesional', 'Consultorio', 'Especialidad', null, 'Vigencia', null, null], 3);
     filas.append(fila);
   }
 }

@@ -12,7 +12,8 @@
     "test:navegador:turnos": "node tests/navegador/turnos.mjs",
     "test:navegador:reportes": "node tests/navegador/reportes.mjs",
     "test:navegador:usuarios": "node tests/navegador/usuarios.mjs",
-    "test:navegador:diseno": "node tests/navegador/diseno.mjs"
+    "test:navegador:diseno": "node tests/navegador/diseno.mjs",
+    "test:navegador:mejoras-uso": "node tests/navegador/mejoras_uso.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.64.0"

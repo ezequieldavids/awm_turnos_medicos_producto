@@ -1,5 +1,5 @@
 import { pedir } from '/assets/js/api.js';
-import { parametroEstado, filtrarEstado, celdaDestacada, alerta, boton, celda, errorFormulario, estadoYAcciones, iniciarEncabezado, limpiarErrores, mostrarError, sesionValida, señalar } from '/assets/js/ui.js';
+import { alerta, boton, celda, celdaDestacada, errorFormulario, estadoYAcciones, filtrarEstado, iniciarEncabezado, limpiarErrores, mostrarError, parametroEstado, rotular, sesionValida, señalar } from '/assets/js/ui.js';
 
 const contenido = document.querySelector('#contenido');
 const filas = document.querySelector('#filas');
@@ -22,6 +22,8 @@ function pintar(consultorios) {
       boton('Editar', 'btn-outline-primary', () => abrirFormulario(c)),
       boton(c.activo ? 'Desactivar' : 'Reactivar', c.activo ? 'btn-outline-danger' : 'btn-outline-success', () => cambiarEstado(c)),
     ]);
+    rotular(fila, [null, 'Piso', 'Ubicación', null, null]);
+    fila.firstElementChild.dataset.prefijo = 'Consultorio';
     filas.append(fila);
   }
 }

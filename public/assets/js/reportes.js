@@ -1,7 +1,7 @@
 import { pedir } from '/assets/js/api.js';
-import { celda, iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
+import { celda, fechaVisible, iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
 
-// Reportes e indicadores: filtros de período, especialidad y profesional, tarjetas, desglose y CSV.
+// Reportes e indicadores : filtros de período, especialidad y profesional, tarjetas, desglose y CSV.
 const formulario = document.querySelector('#formulario');
 const fechaDesde = document.querySelector('#fecha-desde');
 const fechaHasta = document.querySelector('#fecha-hasta');
@@ -48,11 +48,6 @@ function porcentaje(valor) {
   return valor === null ? '—' : `${valor.toLocaleString('es-AR', { maximumFractionDigits: 1 })}%`;
 }
 
-function formatoFecha(iso) {
-  const [anio, mes, dia] = iso.split('-');
-  return `${dia}/${mes}/${anio}`;
-}
-
 function numero(valor) {
   const td = celda(String(valor));
   td.classList.add('text-end');
@@ -65,9 +60,9 @@ function pintar(reporte) {
   indicadores.classList.toggle('d-none', !hayTurnos);
   vacio.classList.toggle('d-none', hayTurnos);
   if (!hayTurnos) {
-    // Sin turnos no se muestran tarjetas con 0 % que parecerían un resultado.
+    // Sin turnos no se muestran tarjetas con 0 % que parecerían un resultado .
     document.querySelector('#vacio-detalle').textContent =
-      `No existen turnos otorgados entre el ${formatoFecha(reporte.periodo.desde)} y el ${formatoFecha(reporte.periodo.hasta)} con los criterios aplicados. Pruebe ampliando el rango de fechas.`;
+      `No existen turnos otorgados entre el ${fechaVisible(reporte.periodo.desde)} y el ${fechaVisible(reporte.periodo.hasta)} con los criterios aplicados. Pruebe ampliando el rango de fechas.`;
     filas.replaceChildren();
     return;
   }

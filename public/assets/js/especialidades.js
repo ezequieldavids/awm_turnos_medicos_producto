@@ -1,6 +1,6 @@
 import { pedir } from '/assets/js/api.js';
 import { iniciarBarra } from '/assets/js/barra.js';
-import { hayAvisoDeInactividad } from '/assets/js/ui.js';
+import { hayAvisoDeInactividad, rotular } from '/assets/js/ui.js';
 
 const alerta = document.querySelector('#alerta');
 const contenido = document.querySelector('#contenido');
@@ -37,19 +37,21 @@ function pintar(especialidades) {
     fila.append(celda(e.nombre), celda(e.descripcion ?? ''));
 
     const estado = document.createElement('td');
+    estado.className = 'celda-estado';
     const insignia = document.createElement('span');
     insignia.className = `badge ${e.activa ? 'text-bg-success' : 'text-bg-secondary'}`;
     insignia.textContent = e.activa ? 'Activa' : 'Inactiva';
     estado.append(insignia);
 
     const acciones = document.createElement('td');
-    acciones.className = 'text-end text-nowrap';
+    acciones.className = 'text-end text-nowrap celda-acciones';
     acciones.append(
       boton('Editar', 'btn-outline-primary', () => abrirFormulario(e)),
       boton(e.activa ? 'Desactivar' : 'Reactivar', e.activa ? 'btn-outline-danger' : 'btn-outline-success', () => cambiarEstado(e)),
     );
 
     fila.append(estado, acciones);
+    rotular(fila, [null, 'Descripción', null, null]);
     filas.append(fila);
   }
 }
@@ -72,7 +74,7 @@ function abrirFormulario(especialidad = null) {
 
 // Devuelve false si la sesión no sirve (ya se redirigió o se avisó).
 function sesionValida(respuesta) {
-  // Sesión vencida por inactividad: la pantalla de inicio muestra el aviso.
+  // Sesión vencida por inactividad : la pantalla de inicio muestra el aviso.
   if (respuesta.estado === 401 && (respuesta.datos?.error?.codigo === 'sesion_expirada' || hayAvisoDeInactividad())) {
     location.replace('/?sesion=inactividad');
     return false;

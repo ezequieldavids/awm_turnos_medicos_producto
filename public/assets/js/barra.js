@@ -1,7 +1,7 @@
 import { pedir } from '/assets/js/api.js';
 import { iniciarInactividad } from '/assets/js/inactividad.js';
 
-// Barra superior común: usuario y rol de la sesión, y cierre de sesión con confirmación.
+// Barra superior común : usuario y rol de la sesión, y cierre de sesión con confirmación.
 export const ROL_CORTO = { administrador: 'ADMIN', recepcionista: 'RECEPCIÓN', profesional: 'PROFESIONAL', paciente: 'PACIENTE' };
 
 function mostrarError(mensaje) {
@@ -72,13 +72,11 @@ export async function iniciarBarra() {
     const { usuario, panel } = respuesta.datos;
     document.querySelector('#usuario-nombre').textContent = `${usuario.nombre} ${usuario.apellido}`;
     document.querySelector('#usuario-rol').textContent = ROL_CORTO[usuario.rol] ?? usuario.etiqueta.toUpperCase();
-    const volver = document.querySelector('#volver');
-    if (volver && panel) {
-      volver.href = panel;
-    }
-    const marca = document.querySelector('.marca');
-    if (marca && panel) {
-      marca.href = panel;
+    // «Inicio» de las migas y el botón «Volver»  llevan al panel del rol.
+    if (panel) {
+      for (const enlace of document.querySelectorAll('#volver, #boton-volver')) {
+        enlace.href = panel;
+      }
     }
     iniciarInactividad(respuesta.datos.inactividadSegundos);
     return respuesta.datos;

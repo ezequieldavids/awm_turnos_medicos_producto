@@ -1,7 +1,7 @@
 import { pedir } from '/assets/js/api.js';
-import { boton, celda, estadoYAcciones, iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
+import { boton, celda, estadoYAcciones, fechaVisible, iniciarEncabezado, mostrarError, rotular, sesionValida } from '/assets/js/ui.js';
 
-// Turnos médicos: búsqueda de horarios libres, reserva, cancelación y reprogramación según el rol.
+// Turnos médicos : búsqueda de horarios libres, reserva, cancelación y reprogramación según el rol.
 const ROLES_QUE_RESERVAN = ['paciente', 'recepcionista', 'administrador'];
 const ROLES_QUE_REGISTRAN_ASISTENCIA = ['profesional', 'recepcionista', 'administrador'];
 const ROLES_QUE_VEN_TODOS = ['recepcionista', 'administrador'];
@@ -37,10 +37,14 @@ const reprogramarSinFranjas = document.querySelector('#reprogramar-sin-franjas')
 
 let rol = null;
 let reprogramando = null; // turno que se está reprogramando
+let versionBusqueda = 0;
+let versionReprogramacion = 0;
+let reservaEnCurso = false;
+let profesionalesDisponibles = []; // profesionales de /api/disponibilidad/opciones, con sus especialidades
 
 const nombre = (persona) => `${persona.apellido}, ${persona.nombre}`;
 const horario = (t) => `${t.horaInicio} a ${t.horaFin}`;
-const etiquetaFranja = (f) => `${f.fecha} · ${f.horaInicio} a ${f.horaFin}`;
+const etiquetaFranja = (f) => `${fechaVisible(f.fecha)} · ${f.horaInicio} a ${f.horaFin}`;
 
 // Fecha AAAA-MM-DD del día local (toISOString usa UTC y puede cambiar de día por la noche).
 function fechaLocal(fecha) {
@@ -73,15 +77,18 @@ function mensajeDeError(respuesta, porDefecto) {
 function celdaPaciente(paciente) {
   const td = document.createElement('td');
   td.append(nombre(paciente));
-  const detalle = document.createElement('small');
-  detalle.className = 'd-block text-body-secondary text-break';
-  detalle.textContent = [
+  // Un renglón por dato : DNI, contacto y obra social, en lugar de un bloque corrido.
+  const lineas = [
     `DNI ${paciente.dni}`,
-    paciente.telefono,
-    paciente.email,
+    [paciente.telefono, paciente.email].filter(Boolean).join(' · '),
     paciente.obraSocial ? `Obra social: ${paciente.obraSocial}` : null,
-  ].filter(Boolean).join(' · ');
-  td.append(detalle);
+  ];
+  for (const texto of lineas.filter(Boolean)) {
+    const linea = document.createElement('small');
+    linea.className = 'd-block text-body-secondary text-break';
+    linea.textContent = texto;
+    td.append(linea);
+  }
   return td;
 }
 
@@ -106,7 +113,7 @@ function acciones(turno) {
       boton('Cancelar', 'btn-outline-danger', () => cancelar(turno)),
     );
   }
-  // Asistencia: sólo cuando el turno ya comenzó; se puede corregir entre atendido y ausente.
+  // Asistencia : sólo cuando el turno ya comenzó; se puede corregir entre atendido y ausente.
   if (ROLES_QUE_REGISTRAN_ASISTENCIA.includes(rol) && turno.pasado) {
     if (turno.estado === 'confirmado') {
       botones.push(
@@ -130,13 +137,16 @@ function pintarTurnos(turnos) {
     const fila = document.createElement('tr');
     fila.dataset.id = turno.id;
 
-    const cuando = celda(`${turno.fecha} · ${horario(turno)}`);
-    // En móvil las columnas de profesional y especialidad se ocultan: su dato va debajo del horario.
-    const detalle = document.createElement('small');
-    detalle.className = 'd-block text-body-secondary d-md-none text-break';
-    detalle.textContent = `${nombre(turno.profesional)} · ${turno.especialidad.nombre}`;
-    cuando.append(detalle);
-    // El motivo se muestra como texto: nunca se inserta como HTML.
+    // Fecha y horario no se parten por dentro; en móvil profesional y especialidad tienen su renglón en la tarjeta .
+    const cuando = document.createElement('td');
+    const fecha = document.createElement('span');
+    fecha.className = 'text-nowrap fecha-turno';
+    fecha.textContent = fechaVisible(turno.fecha);
+    const hora = document.createElement('span');
+    hora.className = 'text-nowrap';
+    hora.textContent = horario(turno);
+    cuando.append(fecha, ' · ', hora);
+    // El motivo se muestra como texto : nunca se inserta como HTML.
     if (turno.motivo) {
       const motivo = document.createElement('small');
       motivo.className = 'd-block text-body-secondary text-break';
@@ -160,6 +170,9 @@ function pintarTurnos(turnos) {
     );
     const { texto, clase } = insignia(turno);
     estadoYAcciones(fila, true, [texto, texto], acciones(turno), clase);
+    rotular(fila, rol !== 'paciente'
+      ? [null, 'Paciente', 'Profesional', 'Especialidad', null, null]
+      : [null, 'Profesional', 'Especialidad', null, null]);
     filas.append(fila);
   }
 }
@@ -188,7 +201,7 @@ async function cargarTurnos() {
 }
 
 async function cancelar(turno) {
-  if (!confirm(`¿Cancelar el turno del ${turno.fecha} a las ${turno.horaInicio}? La franja queda libre.`)) {
+  if (!confirm(`¿Cancelar el turno del ${fechaVisible(turno.fecha)} a las ${turno.horaInicio}? La franja queda libre.`)) {
     return;
   }
   const respuesta = await pedir(`/api/turnos/${turno.id}/estado`, { metodo: 'PUT', cuerpo: { estado: 'cancelado' } });
@@ -209,7 +222,7 @@ async function registrarAsistencia(turno, estado) {
     return;
   }
   if (respuesta.ok) {
-    mostrar(mensajeTurno, `Asistencia registrada: el turno del ${turno.fecha} a las ${turno.horaInicio} quedó como ${estado}.`, 'success');
+    mostrar(mensajeTurno, `Asistencia registrada: el turno del ${fechaVisible(turno.fecha)} a las ${turno.horaInicio} quedó como ${estado}.`, 'success');
   } else {
     mostrar(mensajeTurno, mensajeDeError(respuesta, 'No pudimos registrar la asistencia.'), 'danger');
   }
@@ -227,9 +240,15 @@ function filaFranja(franja, textoAccion, accion) {
   consultorio.textContent = `Consultorio ${franja.consultorio.numero}`;
   profesional.append(consultorio);
   const columnaAccion = document.createElement('td');
-  columnaAccion.className = 'text-end';
+  columnaAccion.className = 'text-end celda-acciones';
   columnaAccion.append(boton(textoAccion, 'btn-outline-primary', accion));
-  fila.append(celda(franja.fecha), celda(`${franja.horaInicio} a ${franja.horaFin}`), profesional, columnaAccion);
+  const fecha = celda(fechaVisible(franja.fecha));
+  fecha.classList.replace('text-break', 'text-nowrap');
+  const hora = celda(`${franja.horaInicio} a ${franja.horaFin}`);
+  hora.classList.replace('text-break', 'text-nowrap');
+  hora.classList.add('celda-estado', 'fw-bold');
+  fila.append(fecha, hora, profesional, columnaAccion);
+  rotular(fila, [null, null, 'Profesional', null]);
   return fila;
 }
 
@@ -240,8 +259,18 @@ async function buscarFranjas(especialidad, desde, hasta, profesional) {
   return pedir(`/api/disponibilidad?${parametros}`);
 }
 
+// Una respuesta tardía nunca debe reemplazar resultados correspondientes a filtros nuevos.
+function invalidarFranjas() {
+  versionBusqueda += 1;
+  franjas.replaceChildren();
+  sinFranjas.classList.add('d-none');
+}
+
 // `limpiar` se apaga al volver a buscar después de reservar, para no borrar el mensaje de la reserva.
 async function buscar(limpiar = true) {
+  if (reservaEnCurso) return;
+  invalidarFranjas();
+  const version = versionBusqueda;
   if (limpiar) {
     ocultar(reservaMensaje);
   }
@@ -258,9 +287,10 @@ async function buscar(limpiar = true) {
   try {
     respuesta = await buscarFranjas(selectEspecialidad.value, reservaDesde.value, reservaHasta.value, selectProfesional.value);
   } catch {
-    mostrar(reservaMensaje, 'No pudimos conectar con el servidor. Intentá nuevamente.', 'danger');
+    if (version === versionBusqueda) mostrar(reservaMensaje, 'No pudimos conectar con el servidor. Intentá nuevamente.', 'danger');
     return;
   }
+  if (version !== versionBusqueda) return;
   if (!sesionValida(respuesta)) {
     return;
   }
@@ -274,6 +304,7 @@ async function buscar(limpiar = true) {
 }
 
 async function reservar(franja) {
+  if (reservaEnCurso) return;
   const cuerpo = {
     agenda: franja.idAgenda,
     fecha: franja.fecha,
@@ -288,7 +319,18 @@ async function reservar(franja) {
     cuerpo.paciente = Number(selectPaciente.value);
   }
 
-  const respuesta = await pedir('/api/turnos', { metodo: 'POST', cuerpo });
+  reservaEnCurso = true;
+  invalidarFranjas();
+  let respuesta;
+  try {
+    respuesta = await pedir('/api/turnos', { metodo: 'POST', cuerpo });
+  } catch {
+    mostrar(reservaMensaje, 'Se perdió la conexión y no sabemos si se registró el turno. Actualizá la página y consultá Mis turnos antes de volver a intentar.', 'danger');
+    reservaMensaje.focus();
+    reservaEnCurso = false;
+    return;
+  }
+  reservaEnCurso = false;
   if (!sesionValida(respuesta)) {
     return;
   }
@@ -299,14 +341,22 @@ async function reservar(franja) {
     // Ante un conflicto se informa el motivo y la grilla se vuelve a consultar.
     mostrar(reservaMensaje, mensajeDeError(respuesta, 'No pudimos reservar el turno.'), 'danger');
   }
+  reservaMensaje.focus();
   await buscar(false);
   await cargarTurnos();
 }
 
+function invalidarReprogramacion() {
+  versionReprogramacion += 1;
+  reprogramarFranjas.replaceChildren();
+  reprogramarSinFranjas.classList.add('d-none');
+}
+
 function abrirReprogramar(turno) {
+  invalidarReprogramacion();
   reprogramando = turno;
   ocultar(reprogramarError);
-  reprogramarActual.textContent = `Turno actual: ${turno.fecha} · ${horario(turno)} con ${nombre(turno.profesional)} (${turno.especialidad.nombre}).`;
+  reprogramarActual.textContent = `Turno actual: ${fechaVisible(turno.fecha)} · ${horario(turno)} con ${nombre(turno.profesional)} (${turno.especialidad.nombre}).`;
   const hoy = new Date();
   reprogramarDesde.value = fechaLocal(hoy);
   reprogramarHasta.value = fechaLocal(sumarDias(hoy, DIAS_DE_BUSQUEDA));
@@ -316,6 +366,8 @@ function abrirReprogramar(turno) {
 }
 
 async function buscarParaReprogramar() {
+  invalidarReprogramacion();
+  const version = versionReprogramacion;
   ocultar(reprogramarError);
   if (!reprogramarDesde.value || !reprogramarHasta.value || reprogramarDesde.value > reprogramarHasta.value) {
     mostrar(reprogramarError, 'Elegí un rango de fechas válido.', 'danger');
@@ -324,12 +376,13 @@ async function buscarParaReprogramar() {
 
   let respuesta;
   try {
-    // La reprogramación mantiene la especialidad del turno; el profesional puede cambiar.
+    // La reprogramación mantiene la especialidad del turno; el profesional puede cambiar .
     respuesta = await buscarFranjas(reprogramando.especialidad.id, reprogramarDesde.value, reprogramarHasta.value, '');
   } catch {
-    mostrar(reprogramarError, 'No pudimos conectar con el servidor. Intentá nuevamente.', 'danger');
+    if (version === versionReprogramacion) mostrar(reprogramarError, 'No pudimos conectar con el servidor. Intentá nuevamente.', 'danger');
     return;
   }
+  if (version !== versionReprogramacion) return;
   if (!sesionValida(respuesta)) {
     return;
   }
@@ -371,9 +424,26 @@ async function cargarOpciones() {
     return false;
   }
   const { especialidades, profesionales } = respuesta.datos;
-  selectEspecialidad.append(...especialidades.map((e) => new Option(e.nombre, e.id)));
-  selectProfesional.append(...profesionales.map((p) => new Option(nombre(p), p.id)));
+  selectEspecialidad.append(new Option('Elegí una especialidad', ''), ...especialidades.map((e) => new Option(e.nombre, e.id)));
+  profesionalesDisponibles = profesionales;
+  actualizarProfesionales();
   return true;
+}
+
+// Filtro encadenado : sólo los profesionales que atienden la especialidad elegida.
+// Sin especialidad, el desplegable queda deshabilitado ; un profesional que no atiende la nueva vuelve a «Cualquier profesional».
+function actualizarProfesionales() {
+  const especialidad = Number(selectEspecialidad.value);
+  const anterior = selectProfesional.value;
+  if (!especialidad) {
+    selectProfesional.replaceChildren(new Option('Elegí primero una especialidad', ''));
+    selectProfesional.disabled = true;
+    return;
+  }
+  const atienden = profesionalesDisponibles.filter((p) => p.especialidades.some((e) => e.id === especialidad));
+  selectProfesional.replaceChildren(new Option('Cualquier profesional', ''), ...atienden.map((p) => new Option(nombre(p), p.id)));
+  selectProfesional.disabled = false;
+  selectProfesional.value = atienden.some((p) => String(p.id) === anterior) ? anterior : '';
 }
 
 async function cargarPacientes() {
@@ -430,6 +500,18 @@ async function iniciar() {
   iniciarEncabezado();
   cargarTurnos();
 }
+
+[reprogramarDesde, reprogramarHasta].forEach((filtro) => {
+  filtro.addEventListener('change', invalidarReprogramacion);
+  filtro.addEventListener('input', invalidarReprogramacion);
+});
+document.querySelector('#modal-reprogramar').addEventListener('hidden.bs.modal', invalidarReprogramacion);
+
+selectEspecialidad.addEventListener('change', actualizarProfesionales);
+[selectEspecialidad, selectProfesional, reservaDesde, reservaHasta].forEach((filtro) => {
+  filtro.addEventListener('change', invalidarFranjas);
+  filtro.addEventListener('input', invalidarFranjas);
+});
 
 formularioBusqueda.addEventListener('submit', (evento) => {
   evento.preventDefault();

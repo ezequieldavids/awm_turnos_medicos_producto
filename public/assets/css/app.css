@@ -1,4 +1,4 @@
-/* Identidad visual común. Se apoya en Bootstrap 5.3.3; sólo redefine variables y piezas propias. */
+/* Identidad visual común . Se apoya en Bootstrap 5.3.3; sólo redefine variables y piezas propias. */
 @font-face {
   font-family: 'Ubuntu';
   src: url('/assets/fonts/ubuntu-latin.woff2') format('woff2');
@@ -93,7 +93,7 @@ main.container { max-width: 1140px; }
 .dni-fuerte { font-weight: 700; }
 .contacto { font-size: .875rem; color: var(--app-texto-suave); line-height: 1.5; }
 
-/* Insignias: texto oscuro sobre fondo claro (contraste AA) */
+/* Insignias: texto oscuro sobre fondo claro  */
 .badge { font-weight: 700; font-size: .78rem; border-radius: .4rem; padding: .35em .6em; }
 .badge.text-bg-success { background-color: #d1f0de !important; color: #0f5132 !important; }
 .badge.text-bg-secondary { background-color: #e9ecef !important; color: #41464b !important; }
@@ -140,7 +140,8 @@ dialog.dialogo::backdrop { background: rgba(0, 0, 0, .5); }
 /* Reportes y tablas apiladas en móvil (antes en línea en cada página) */
 .tarjeta-indicador { border-left: 4px solid var(--color-indicador, var(--app-azul)); }
 .tarjeta-indicador .valor { font-size: 2rem; font-weight: 700; line-height: 1.1; }
-@media (max-width: 991.98px) {
+/* Usuarios en tablet: filas apiladas con rótulo . */
+@media (min-width: 768px) and (max-width: 991.98px) {
   .tabla-apilada #cabecera-usuarios { display: none; }
   .tabla-apilada #filas tr { display: block; border-bottom: 1px solid var(--bs-border-color); padding: .5rem .75rem; }
   .tabla-apilada #filas tr:last-child { border-bottom: 0; }
@@ -162,4 +163,48 @@ dialog.dialogo::backdrop { background: rgba(0, 0, 0, .5); }
   .table > thead th:last-child, .table > tbody td:last-child { padding-right: .75rem; }
   .table > thead th, .table > tbody td { padding-inline: .4rem; }
   .tabla-apilada .table > tbody td:first-child, .tabla-apilada .table > tbody td:last-child { padding-inline: 0; }
+}
+
+/* Botón Volver de cada módulo  */
+.boton-volver { white-space: nowrap; min-height: 2.25rem; display: inline-flex; align-items: center; gap: .3rem; }
+
+/* Listados en tarjetas en teléfonos . Cada fila es una tarjeta: dato principal y estado arriba,
+   un renglón por dato con su rótulo (data-etiqueta) y las acciones al pie. El encabezado queda para lectores de pantalla. */
+@media (max-width: 767.98px) {
+  .listado-tarjetas { background: transparent !important; box-shadow: none !important; border: 0 !important; overflow: visible; }
+  .listado-tarjetas > .table { display: block; background: transparent; --bs-table-bg: transparent; }
+  .listado-tarjetas > .table > thead { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .listado-tarjetas > .table > tbody { display: block; }
+  .listado-tarjetas > .table > tbody > tr {
+    display: flex; flex-wrap: wrap; align-items: flex-start; gap: .35rem .75rem;
+    background: #fff; border-radius: var(--app-radio); box-shadow: var(--app-sombra);
+    border: 1px solid var(--app-borde); padding: .9rem 1rem; margin-bottom: .75rem;
+  }
+  .listado-tarjetas > .table > tbody > tr:hover > * { background-color: transparent; }
+  .listado-tarjetas > .table > tbody > tr > td {
+    display: block !important; flex: 1 1 100%; order: 2; position: relative;
+    border: 0; padding: 0 !important; text-align: left !important; background: transparent; box-shadow: none;
+    min-width: 0; overflow-wrap: anywhere; /* un texto largo sin espacios no desborda la tarjeta */
+  }
+  .listado-tarjetas > .table > tbody > tr > td:empty { display: none !important; }
+  .listado-tarjetas .badge { white-space: normal; overflow-wrap: anywhere; text-align: left; }
+  .listado-tarjetas > .table > tbody > tr > td[data-etiqueta] { padding-left: 7rem !important; }
+  .listado-tarjetas > .table > tbody > tr > td[data-etiqueta]::before {
+    content: attr(data-etiqueta); position: absolute; left: 0; top: 0; width: 6.5rem;
+    color: var(--app-texto-suave); font-size: .85rem; font-weight: 600; line-height: 1.5rem;
+  }
+  .listado-tarjetas > .table > tbody > tr > td.celda-principal { flex: 1 1 8rem; min-width: 0; order: 0; font-weight: 700; font-size: 1.05rem; padding-left: 0 !important; }
+  .listado-tarjetas > .table > tbody > tr > td.celda-principal::before { content: none; }
+  .listado-tarjetas > .table > tbody > tr > td.celda-principal[data-prefijo]::before { content: attr(data-prefijo) " "; position: static; display: inline; width: auto; color: inherit; font-size: inherit; font-weight: inherit; }
+  .listado-tarjetas > .table > tbody > tr > td.celda-principal small { font-weight: 400; font-size: .85rem; }
+  .listado-tarjetas > .table > tbody > tr > td.celda-estado { flex: 0 0 auto; order: 1; margin-left: auto; padding-left: 0 !important; }
+  .listado-tarjetas > .table > tbody > tr > td.celda-estado::before { content: none; }
+  .listado-tarjetas > .table > tbody > tr > td.celda-acciones {
+    order: 3; display: flex !important; flex-wrap: wrap; gap: .5rem; padding-left: 0 !important;
+    border-top: 1px solid var(--app-borde); padding-top: .65rem !important; margin-top: .3rem;
+  }
+  .listado-tarjetas > .table > tbody > tr > td.celda-acciones::before { content: none; }
+  .listado-tarjetas .celda-acciones .grupo-acciones { display: flex; flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; gap: .5rem; }
+  .listado-tarjetas .celda-acciones .btn { flex: 1 1 6rem; min-height: 44px; margin: 0 !important; border-radius: var(--bs-border-radius) !important; }
+  .listado-tarjetas > .table > tbody > tr > td.celda-acciones:not(:has(.btn)) { display: none !important; }
 }

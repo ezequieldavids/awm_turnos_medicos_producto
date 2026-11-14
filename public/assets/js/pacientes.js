@@ -1,5 +1,5 @@
 import { pedir } from '/assets/js/api.js';
-import { parametroEstado, filtrarEstado, celdaDestacada, celdaContacto, alerta, boton, celda, errorFormulario, estadoYAcciones, iniciarEncabezado, limpiarErrores, mostrarError, sesionValida, señalar } from '/assets/js/ui.js';
+import { alerta, boton, celda, celdaContacto, celdaDestacada, errorFormulario, estadoYAcciones, filtrarEstado, iniciarEncabezado, limpiarErrores, mostrarError, parametroEstado, rotular, sesionValida, señalar } from '/assets/js/ui.js';
 
 const contenido = document.querySelector('#contenido');
 const filas = document.querySelector('#filas');
@@ -26,6 +26,7 @@ function pintar(pacientes) {
       boton('Editar', 'btn-outline-primary', () => abrirFormulario(p)),
       boton(p.activo ? 'Desactivar' : 'Reactivar', p.activo ? 'btn-outline-danger' : 'btn-outline-success', () => cambiarEstado(p)),
     ]);
+    rotular(fila, ['DNI', null, 'Contacto', 'Obra social', null, null], 1);
     filas.append(fila);
   }
 }

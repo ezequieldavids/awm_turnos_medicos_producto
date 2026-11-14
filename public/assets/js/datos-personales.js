@@ -1,7 +1,7 @@
 import { pedir } from '/assets/js/api.js';
-import { iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
+import { fechaVisible, iniciarEncabezado, mostrarError, sesionValida } from '/assets/js/ui.js';
 
-// Autoconsulta de datos personales del paciente: sólo lectura, sobre los datos de la sesión.
+// Autoconsulta de datos personales del paciente : sólo lectura, sobre los datos de la sesión.
 const CAMPOS = [
   ['dni', 'DNI'],
   ['nombre', 'Nombre'],
@@ -14,12 +14,6 @@ const CAMPOS = [
 
 const contenido = document.querySelector('#contenido');
 const datos = document.querySelector('#datos');
-
-// Fecha ISO (AAAA-MM-DD) como DD/MM/AAAA.
-function fecha(iso) {
-  const [anio, mes, dia] = iso.split('-');
-  return `${dia}/${mes}/${anio}`;
-}
 
 function fila(etiqueta, valor) {
   const termino = document.createElement('dt');
@@ -49,7 +43,7 @@ async function cargar() {
 
   const registro = respuesta.datos.datos;
   datos.replaceChildren(...CAMPOS.flatMap(([clave, etiqueta]) => {
-    const valor = clave === 'fechaNacimiento' && registro[clave] ? fecha(registro[clave]) : registro[clave];
+    const valor = clave === 'fechaNacimiento' && registro[clave] ? fechaVisible(registro[clave]) : registro[clave];
     return fila(etiqueta, valor);
   }));
   contenido.classList.remove('d-none');

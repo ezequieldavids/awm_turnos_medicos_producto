@@ -1,5 +1,5 @@
 import { pedir } from '/assets/js/api.js';
-import { alerta, boton, celda, errorFormulario, estadoYAcciones, iniciarEncabezado, limpiarErrores, mostrarError, sesionValida, señalar } from '/assets/js/ui.js';
+import { alerta, boton, celda, errorFormulario, estadoYAcciones, iniciarEncabezado, limpiarErrores, mostrarError, rotular, sesionValida, señalar } from '/assets/js/ui.js';
 
 const contenido = document.querySelector('#contenido');
 const filas = document.querySelector('#filas');
@@ -41,10 +41,8 @@ function pintar(usuarios) {
       boton('Contraseña', 'btn-outline-secondary', () => abrirFormulario('contrasena', u)),
       boton(u.activo ? 'Desactivar' : 'Reactivar', u.activo ? 'btn-outline-danger' : 'btn-outline-success', () => cambiarEstado(u)),
     ]);
-    // Rótulos de cada celda para la vista de tarjetas en móvil (ver usuarios.html).
-    ['DNI', 'Apellido y nombre', 'Rol', 'Estado', 'Acciones'].forEach((etiqueta, i) => {
-      fila.children[i].dataset.etiqueta = etiqueta;
-    });
+    // Rótulos de cada celda para la vista apilada (tablet) y de tarjetas .
+    rotular(fila, ['DNI', 'Apellido y nombre', 'Rol', 'Estado', 'Acciones'], 1);
     filas.append(fila);
   }
 }

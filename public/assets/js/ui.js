@@ -1,6 +1,6 @@
 import { iniciarBarra } from '/assets/js/barra.js';
 
-// Piezas comunes de las pantallas de gestión.
+// Piezas comunes de las pantallas de gestión .
 export const alerta = document.querySelector('#alerta');
 
 export function mostrarError(mensaje) {
@@ -32,8 +32,9 @@ export function estadoYAcciones(fila, activo, etiquetas, acciones, clase = null)
   insignia.textContent = activo ? etiquetas[0] : etiquetas[1];
   estado.append(insignia);
 
+  estado.className = 'celda-estado';
   const columna = document.createElement('td');
-  columna.className = 'text-end';
+  columna.className = 'text-end celda-acciones';
   const caja = document.createElement('div');
   caja.className = 'grupo-acciones';
   caja.append(...acciones);
@@ -41,13 +42,13 @@ export function estadoYAcciones(fila, activo, etiquetas, acciones, clase = null)
   fila.append(estado, columna);
 }
 
-// Marca que el servidor deja al cerrar por inactividad: dura 60 s y sirve al volver con «atrás».
+// Marca que el servidor deja al cerrar por inactividad : dura 60 s y sirve al volver con «atrás».
 export function hayAvisoDeInactividad() {
   return document.cookie.split(';').some((cookie) => cookie.trim() === 'turnos_inactividad=1');
 }
 
 // Devuelve false si la sesión no sirve (ya se redirigió al login/panel).
-// Una sesión vencida por inactividad vuelve al inicio con el aviso.
+// Una sesión vencida por inactividad  vuelve al inicio con el aviso.
 export function sesionValida(respuesta) {
   if (respuesta.estado === 401 && (respuesta.datos?.error?.codigo === 'sesion_expirada' || hayAvisoDeInactividad())) {
     location.replace('/?sesion=inactividad');
@@ -138,4 +139,22 @@ export function celdaInsignias(textos, clase) {
   caja.append(...textos.map((t) => insignia(t, clase)));
   td.append(caja);
   return td;
+}
+
+// Fecha ISO (AAAA-MM-DD) como DD-MM-AAAA para mostrar . La API sigue usando ISO.
+export function fechaVisible(iso) {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? '');
+  return partes ? `${partes[3]}-${partes[2]}-${partes[1]}` : iso;
+}
+
+// Vista de tarjetas en móvil : rótulo de cada celda, en el orden de la fila.
+// `principal` es la celda que encabeza la tarjeta: no muestra rótulo (salvo un `data-prefijo` propio, p. ej. «Consultorio»).
+// `null` deja una celda sin rótulo (estado y acciones ya se reconocen por sí mismos).
+export function rotular(fila, etiquetas, principal = 0) {
+  [...fila.children].forEach((td, i) => {
+    if (etiquetas[i]) {
+      td.dataset.etiqueta = etiquetas[i];
+    }
+    td.classList.toggle('celda-principal', i === principal);
+  });
 }
