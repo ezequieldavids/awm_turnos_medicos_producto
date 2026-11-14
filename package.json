@@ -1,7 +1,7 @@
 {
   "name": "turnos-medicos",
   "private": true,
-  "description": "Turnos médicos: pruebas de navegador de TUR-001 a TUR-007 y TUR-009 (la aplicación web es PHP puro, sin dependencias de runtime).",
+  "description": "Turnos médicos: pruebas de navegador (la aplicación web es PHP puro, sin dependencias de runtime).",
   "scripts": {
     "test:navegador": "node tests/navegador/recorrido.mjs",
     "test:navegador:especialidades": "node tests/navegador/especialidades.mjs",

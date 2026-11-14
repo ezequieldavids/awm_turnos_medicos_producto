@@ -17,7 +17,7 @@ import { chromium } from 'playwright-core';
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const APP = (process.env.APP_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
-const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'specs/TUR-008/artifacts');
+const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'artefactos');
 const CHROME = process.env.CHROME_PATH ?? '/usr/bin/google-chrome';
 
 const ESCRITORIO = { width: 1280, height: 800 };

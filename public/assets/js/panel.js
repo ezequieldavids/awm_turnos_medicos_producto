@@ -58,7 +58,7 @@ function tarjeta(opcion, rol) {
       acciones.append(enlace('+ Reservar', '/turnos.html#seccion-reserva', 'btn-primary'));
     }
   } else {
-    acciones.append(elemento('span', 'badge text-bg-secondary', `Pendiente · ${opcion.feature}`));
+    acciones.append(elemento('span', 'badge text-bg-secondary', 'Pendiente'));
   }
   articulo.append(acciones);
   columna.append(articulo);

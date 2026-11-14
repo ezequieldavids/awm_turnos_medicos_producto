@@ -31,7 +31,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Definí DB_PASSWORD antes de iniciar el entorno}
       # Local sin HTTPS: los navegadores aceptan cookies Secure en localhost.
       SESSION_SECURE: ${SESSION_SECURE:-1}
-      # Inactividad de la sesión en segundos (TUR-008, Q-1): 15 minutos por defecto.
+      # Inactividad de la sesión en segundos: 15 minutos por defecto.
       SESION_INACTIVIDAD_SEGUNDOS: ${SESION_INACTIVIDAD_SEGUNDOS:-900}
     volumes:
       - ./:/app:ro

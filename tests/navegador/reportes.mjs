@@ -18,7 +18,7 @@ import { chromium } from 'playwright-core';
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const APP = (process.env.APP_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
-const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'specs/TUR-006/artifacts');
+const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'artefactos');
 const CHROME = process.env.CHROME_PATH ?? '/usr/bin/google-chrome';
 
 const ESCRITORIO = { width: 1280, height: 800 };
@@ -235,7 +235,7 @@ async function main() {
       await captura(paginaAdmin, 'AC-005-reporte-desglose-desktop.png', paginaAdmin.locator('#tabla-desglose'));
     });
 
-    await comprobar('AC-005', 'un nombre con HTML se muestra como texto, sin crear elementos (REV-TUR-006-004)', async () => {
+    await comprobar('AC-005', 'un nombre con HTML se muestra como texto, sin crear elementos', async () => {
       const marca = '<b id="inyectado">x</b>';
       sql(`UPDATE persona pe JOIN profesional pr ON pr.id_persona = pe.id_persona SET pe.apellido = '${marca}' WHERE pr.id_profesional = ${datos.profesional}`);
       const pagina = await admin.newPage();

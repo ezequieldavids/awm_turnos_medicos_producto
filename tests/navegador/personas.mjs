@@ -16,7 +16,7 @@ import { chromium } from 'playwright-core';
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const APP = (process.env.APP_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
-const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'specs/TUR-003/artifacts');
+const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'artefactos');
 const CHROME = process.env.CHROME_PATH ?? '/usr/bin/google-chrome';
 
 const ESCRITORIO = { width: 1280, height: 800 };
@@ -123,7 +123,7 @@ async function main() {
     await pagina.waitForSelector('#contenido:not(.d-none)');
 
     // Accesos del panel.
-    await comprobar('AC-008', 'panel del administrador: Profesionales y Pacientes abren su gestión; no queda ninguna opción pendiente (TUR-005)', async () => {
+    await comprobar('AC-008', 'panel del administrador: Profesionales y Pacientes abren su gestión; no queda ninguna opción pendiente', async () => {
       const enlaces = await pagina.locator('#opciones a.btn-outline-primary').allTextContents();
       afirmar(JSON.stringify(enlaces) === JSON.stringify(['Usuarios', 'Especialidades', 'Profesionales', 'Pacientes', 'Consultorios', 'Agendas', 'Ver turnos', 'Ver reportes']), `enlaces: ${enlaces}`);
       const pendientes = await pagina.locator('#opciones .badge.text-bg-secondary').allTextContents();

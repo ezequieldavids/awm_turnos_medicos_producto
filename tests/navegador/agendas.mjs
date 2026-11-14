@@ -16,7 +16,7 @@ import { chromium } from 'playwright-core';
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const APP = (process.env.APP_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
-const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'specs/TUR-004/artifacts');
+const ARTEFACTOS = process.env.ARTEFACTOS_DIR ?? path.join(raiz, 'artefactos');
 const CHROME = process.env.CHROME_PATH ?? '/usr/bin/google-chrome';
 
 const ESCRITORIO = { width: 1280, height: 800 };
@@ -116,7 +116,7 @@ async function main() {
     await pagina.waitForSelector('#contenido:not(.d-none)');
 
     // Accesos del panel del administrador.
-    await comprobar('AC-008', 'panel del administrador: Consultorios, Agendas y Turnos son enlaces; no queda ninguna opción pendiente (TUR-005)', async () => {
+    await comprobar('AC-008', 'panel del administrador: Consultorios, Agendas y Turnos son enlaces; no queda ninguna opción pendiente', async () => {
       const enlaces = await pagina.locator('#opciones a.btn-outline-primary').allTextContents();
       afirmar(JSON.stringify(enlaces.slice(-4)) === JSON.stringify(['Consultorios', 'Agendas', 'Ver turnos', 'Ver reportes']), `enlaces: ${enlaces}`);
       const pendientes = await pagina.locator('#opciones .badge.text-bg-secondary').allTextContents();

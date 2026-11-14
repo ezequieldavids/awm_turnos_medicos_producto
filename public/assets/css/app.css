@@ -1,4 +1,4 @@
-/* Identidad visual común (TUR-009). Se apoya en Bootstrap 5.3.3; sólo redefine variables y piezas propias. */
+/* Identidad visual común. Se apoya en Bootstrap 5.3.3; sólo redefine variables y piezas propias. */
 @font-face {
   font-family: 'Ubuntu';
   src: url('/assets/fonts/ubuntu-latin.woff2') format('woff2');
@@ -93,7 +93,7 @@ main.container { max-width: 1140px; }
 .dni-fuerte { font-weight: 700; }
 .contacto { font-size: .875rem; color: var(--app-texto-suave); line-height: 1.5; }
 
-/* Insignias: texto oscuro sobre fondo claro (contraste AA, ver evidencia de TUR-009) */
+/* Insignias: texto oscuro sobre fondo claro (contraste AA) */
 .badge { font-weight: 700; font-size: .78rem; border-radius: .4rem; padding: .35em .6em; }
 .badge.text-bg-success { background-color: #d1f0de !important; color: #0f5132 !important; }
 .badge.text-bg-secondary { background-color: #e9ecef !important; color: #41464b !important; }
